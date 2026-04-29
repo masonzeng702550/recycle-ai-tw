@@ -1,0 +1,92 @@
+{
+  "cityId": "taipei",
+  "cityName": "臺北市",
+  "groupDefaults": {
+    "paper": {
+      "disposal": "折疊壓平後投入藍色資源回收桶，或於垃圾車資源回收時段交給回收人員。紙箱請拆開壓扁。",
+      "binColor": "藍色資源回收桶",
+      "sourceUrl": "https://www.dep.gov.taipei/"
+    },
+    "plastic": {
+      "disposal": "清洗乾淨並去除殘留食物後投入黃色資源回收桶，或於垃圾車資源回收時段交給回收人員。",
+      "binColor": "黃色資源回收桶",
+      "sourceUrl": "https://www.dep.gov.taipei/"
+    },
+    "glass": {
+      "disposal": "清洗乾淨後投入綠色玻璃回收桶。破損玻璃請以報紙包好並標示「破玻璃」。",
+      "binColor": "綠色玻璃回收桶"
+    },
+    "metal": {
+      "disposal": "清洗乾淨後投入資源回收桶（金屬區）。鋁罐請壓扁。",
+      "binColor": "資源回收桶（金屬區）"
+    },
+    "food": {
+      "disposal": "瀝乾水分後分別投入「熟廚餘」與「生廚餘」桶，垃圾車旁分桶收取。",
+      "binColor": "廚餘桶"
+    },
+    "general": {
+      "disposal": "裝入臺北市專用垃圾袋，於垃圾車抵達時段親自交付。臺北市實施隨袋徵收，不可直接棄置路邊或公共空間。",
+      "binColor": "臺北市專用垃圾袋"
+    },
+    "hazardous": {
+      "disposal": "送至各區清潔隊或便利商店設置的回收箱（電池）；藥品交大型醫院或連鎖藥局廢藥回收箱；燈管交清潔隊。",
+      "binColor": "有害廢棄物專用回收點"
+    },
+    "large": {
+      "disposal": "撥打 1999 或上環保局網站預約大型廢棄物收運，依公告時間放置於指定地點。費用依體積計算。",
+      "binColor": "需預約收運",
+      "sourceUrl": "https://www.dep.gov.taipei/"
+    },
+    "electronics": {
+      "disposal": "送至各區清潔隊資源回收站，或至連鎖 3C 通路（燦坤、全國電子等）免費回收。",
+      "binColor": "廢電器回收"
+    },
+    "clothing": {
+      "disposal": "洗淨後投入黃色舊衣回收桶（社區、學校、捷運站常見），或捐至善意二手店。",
+      "binColor": "黃色舊衣回收桶"
+    }
+  },
+  "items": {
+    "paper_cup": {
+      "disposal": "視為紙容器：沖洗、瀝乾並折扁後，投入紙容器回收（不與一般紙類混合）。沾油過多請丟一般垃圾。",
+      "binColor": "紙容器回收",
+      "notes": ["臺北市紙容器需獨立分類，勿與報紙、紙箱混合"]
+    },
+    "paper_lunchbox": {
+      "disposal": "撕除塑膠淋膜內襯與蓋膜（如有），沖洗瀝乾後投入紙容器回收；油污嚴重者改丟一般垃圾。",
+      "binColor": "紙容器回收"
+    },
+    "ali_pak": {
+      "disposal": "屬於紙容器，沖洗瀝乾、攤平後投入紙容器回收。",
+      "binColor": "紙容器回收"
+    },
+    "tissue": {
+      "disposal": "衛生紙、面紙屬一般垃圾，裝入臺北市專用垃圾袋。",
+      "binColor": "臺北市專用垃圾袋"
+    },
+    "plastic_bag": {
+      "disposal": "乾淨乾燥的塑膠袋可投入塑膠回收；沾染食物或油污者丟一般垃圾。",
+      "binColor": "黃色資源回收桶"
+    },
+    "broken_glass": {
+      "disposal": "以報紙妥善包裹並標示「破玻璃，小心」後，於資源回收時段交付清潔隊。",
+      "binColor": "綠色玻璃回收桶"
+    },
+    "lightbulb": {
+      "disposal": "白熾、LED 燈泡屬一般垃圾，請小心包裹避免割傷。",
+      "binColor": "臺北市專用垃圾袋"
+    },
+    "fluorescent_tube": {
+      "disposal": "螢光燈管含汞，屬有害廢棄物。送至各區清潔隊資源回收站處理。",
+      "binColor": "有害廢棄物專用回收點"
+    },
+    "battery": {
+      "disposal": "送至各區清潔隊或便利商店、量販店設置的電池回收箱。",
+      "binColor": "電池回收箱"
+    },
+    "fridge": {
+      "disposal": "公告應回收電器，撥打 1999 或上環保局網站預約收運，亦可請販售業者免費回收。",
+      "binColor": "需預約 / 通路免費回收"
+    }
+  }
+}

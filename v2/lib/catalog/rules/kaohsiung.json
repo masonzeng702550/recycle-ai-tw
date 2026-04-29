@@ -1,0 +1,83 @@
+{
+  "cityId": "kaohsiung",
+  "cityName": "高雄市",
+  "groupDefaults": {
+    "paper": {
+      "disposal": "折疊壓平後於資源回收日（高雄市分週收運）交付清潔隊資源回收車。紙箱請拆扁。",
+      "binColor": "資源回收車（紙類）",
+      "sourceUrl": "https://ksedb.kcg.gov.tw/"
+    },
+    "plastic": {
+      "disposal": "清洗、晾乾後於資源回收日交付資源回收車。可回收容器以塑膠瓶、塑膠盒為主。",
+      "binColor": "資源回收車（塑膠）",
+      "sourceUrl": "https://ksedb.kcg.gov.tw/"
+    },
+    "glass": {
+      "disposal": "清洗乾淨後於資源回收日交付清潔隊。破損玻璃請以報紙包覆並標示。",
+      "binColor": "資源回收車（玻璃）"
+    },
+    "metal": {
+      "disposal": "清洗、壓扁後於資源回收日交付清潔隊。",
+      "binColor": "資源回收車（金屬）"
+    },
+    "food": {
+      "disposal": "瀝乾水分後交付廚餘回收車（隨垃圾車同行），高雄市分「養豬廚餘」與「堆肥廚餘」收運。",
+      "binColor": "廚餘回收桶"
+    },
+    "general": {
+      "disposal": "高雄市使用一般垃圾袋（無專用袋制度），於垃圾車抵達時段親自交付。請勿任意棄置。",
+      "binColor": "一般垃圾袋"
+    },
+    "hazardous": {
+      "disposal": "送至各區清潔隊或便利商店、藥局之回收箱；廢藥品交至合作醫療院所「廢藥回收站」。",
+      "binColor": "有害廢棄物回收點"
+    },
+    "large": {
+      "disposal": "撥打 07-3373267 或上環保局網站預約大型廢棄物收運（每月限定次數免費），依約定時間放置。",
+      "binColor": "需預約收運",
+      "sourceUrl": "https://ksedb.kcg.gov.tw/"
+    },
+    "electronics": {
+      "disposal": "送至各區清潔隊資源回收站，或購買新品時交由販售業者免費回收。",
+      "binColor": "資源回收站 / 通路回收"
+    },
+    "clothing": {
+      "disposal": "洗淨後投入舊衣回收箱（高雄各區設置點），或捐贈合作社福團體。",
+      "binColor": "舊衣回收箱"
+    }
+  },
+  "items": {
+    "paper_cup": {
+      "disposal": "視為紙容器，沖洗瀝乾後與其他紙容器一同回收，勿與一般紙類混合。",
+      "binColor": "資源回收車（紙容器）"
+    },
+    "paper_lunchbox": {
+      "disposal": "撕除塑膠淋膜，沖洗瀝乾後投入紙容器回收；油污嚴重者改丟一般垃圾。",
+      "binColor": "資源回收車（紙容器）"
+    },
+    "ali_pak": {
+      "disposal": "屬紙容器，沖洗瀝乾、攤平後交付資源回收車。",
+      "binColor": "資源回收車（紙容器）"
+    },
+    "tissue": {
+      "disposal": "面紙、衛生紙不可回收，屬一般垃圾。",
+      "binColor": "一般垃圾袋"
+    },
+    "broken_glass": {
+      "disposal": "以報紙包裹並標示「破玻璃，小心」後交付清潔隊。",
+      "binColor": "資源回收車（玻璃）"
+    },
+    "fluorescent_tube": {
+      "disposal": "含汞屬有害廢棄物，請整支送至各區清潔隊或量販店之燈管回收箱。",
+      "binColor": "燈管回收箱"
+    },
+    "battery": {
+      "disposal": "送至各區清潔隊、便利商店、量販店、藥局之電池回收點。",
+      "binColor": "電池回收箱"
+    },
+    "fridge": {
+      "disposal": "公告應回收電器，可請販售業者免費回收，或撥打環保局專線預約收運。",
+      "binColor": "需預約 / 通路免費回收"
+    }
+  }
+}
