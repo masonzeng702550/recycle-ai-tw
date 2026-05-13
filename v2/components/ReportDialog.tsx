@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { items as ALL_ITEMS } from "@/lib/catalog";
+import { maybeResizeImage } from "@/lib/image-resize";
 import { addReport } from "@/lib/storage";
 import type { CityId } from "@/lib/types";
 
@@ -59,7 +60,15 @@ export default function ReportDialog({
 
     try {
       const fd = new FormData();
-      if (imageFile) fd.append("image", imageFile);
+      if (imageFile) {
+        // 錯誤回報的圖要永久保留，但仍要過 4.5 MB body 上限。
+        // 用較高解析度（3072）跟品質（0.92），admin 端仍能看清楚。
+        const sendable = await maybeResizeImage(imageFile, {
+          maxLongSide: 3072,
+          quality: 0.92,
+        });
+        fd.append("image", sendable);
+      }
       if (recognitionId !== null) {
         fd.append("recognitionId", String(recognitionId));
       }

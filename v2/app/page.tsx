@@ -7,6 +7,7 @@ import ApiKeyGate from "@/components/ApiKeyGate";
 import ResultCard from "@/components/ResultCard";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { getCityRule } from "@/lib/catalog";
+import { maybeResizeImage } from "@/lib/image-resize";
 import {
   getApiKey,
   setApiKey as saveApiKey,
@@ -132,8 +133,10 @@ export default function HomePage() {
 
     setState({ kind: "analyzing" });
     try {
+      // 縮到 2560px 邊長以內，避免被 Vercel 4.5 MB body 上限擋住
+      const sendable = await maybeResizeImage(images[0].file);
       const fd = new FormData();
-      fd.append("image", images[0].file);
+      fd.append("image", sendable);
       fd.append("cityId", cityId);
       fd.append("turnstileToken", turnstileToken);
       fd.append("keyMode", keyMode);
