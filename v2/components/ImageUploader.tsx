@@ -42,7 +42,9 @@ export default function ImageUploader({
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files;
+    // FileList 是活的引用，清空 input.value 會一起清掉裡面的檔案，
+    // 因此必須先拷成陣列再 reset。
+    const files = e.target.files ? Array.from(e.target.files) : [];
     e.target.value = "";
     processFiles(files);
   }
