@@ -1,11 +1,13 @@
 "use client";
 
-import type { CityId, ReportEntry } from "./types";
+import type { CityId, KeyMode, ReportEntry } from "./types";
 
 const KEY = {
   apiKey: "tf:apiKey",
   city: "tf:cityId",
   reports: "tf:reports",
+  orgCode: "tf:orgCode",
+  keyMode: "tf:keyMode",
 } as const;
 
 function safeGet(key: string): string | null {
@@ -70,9 +72,31 @@ export function addReport(entry: ReportEntry) {
   safeSet(KEY.reports, JSON.stringify(list));
 }
 
+// ─── 組織代號 ─────────────────────────────────────────────────────────────
+export function getOrgCode(): string {
+  return safeGet(KEY.orgCode) ?? "";
+}
+
+export function setOrgCode(code: string) {
+  if (code) safeSet(KEY.orgCode, code);
+  else safeRemove(KEY.orgCode);
+}
+
+// ─── 來源模式：用自己 Key 還是組織代號 ───────────────────────────────────
+export function getKeyMode(): KeyMode {
+  const v = safeGet(KEY.keyMode);
+  return v === "org" ? "org" : "own";
+}
+
+export function setKeyMode(mode: KeyMode) {
+  safeSet(KEY.keyMode, mode);
+}
+
 // ─── 全清 ────────────────────────────────────────────────────────────────
 export function clearAll() {
   safeRemove(KEY.apiKey);
   safeRemove(KEY.city);
   safeRemove(KEY.reports);
+  safeRemove(KEY.orgCode);
+  safeRemove(KEY.keyMode);
 }

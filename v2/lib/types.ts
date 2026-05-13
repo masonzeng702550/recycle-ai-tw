@@ -79,3 +79,49 @@ export interface ReportEntry {
   reportedItemId?: string;
   reason?: string;
 }
+
+// ─── v2.1 後端共用 ────────────────────────────────────────
+
+export type KeyMode = "own" | "org";
+
+export interface OrgPublicInfo {
+  code: string;
+  name: string;
+  active: boolean;
+}
+
+export interface RecognitionRecord {
+  id: number;
+  createdAt: string;
+  cityId: string;
+  status: "identified" | "uncertain" | "error";
+  itemId: string | null;
+  itemName: string | null;
+  groupName: string | null;
+  confidence: string | null;
+  explanation: string | null;
+  keyMode: KeyMode;
+  orgCode: string | null;
+}
+
+export interface ErrorReportRecord {
+  id: number;
+  createdAt: string;
+  recognitionId: number | null;
+  blobUrl: string;
+  userComment: string | null;
+  reportedItemId: string | null;
+  cityId: string | null;
+}
+
+export interface AdminStats {
+  totalRecognitions: number;
+  identifiedCount: number;
+  uncertainCount: number;
+  errorCount: number;
+  reportCount: number;
+  byGroup: { group: string; count: number }[];
+  byDay: { day: string; count: number }[];
+  // 「正確率」= 1 − (錯誤回報數 / 已辨識數)，僅作為粗略指標
+  accuracyEstimate: number | null;
+}
