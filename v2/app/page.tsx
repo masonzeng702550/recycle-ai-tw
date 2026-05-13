@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import ImageUploader from "@/components/ImageUploader";
 import ApiKeyGate from "@/components/ApiKeyGate";
 import ResultCard from "@/components/ResultCard";
@@ -306,21 +307,7 @@ export default function HomePage() {
             </aside>
           </div>
 
-          <footer className="mt-12 pt-6 border-t border-neutral-900 text-center text-xs text-neutral-600 space-y-1">
-            <p>
-              本工具為臺北市數位實驗高中公民行動學期專題（v2.1），分類規則僅供參考，最終以各市環保局公告為準。
-            </p>
-            <p>
-              <a
-                href="https://recycle.rethinktw.org/"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:underline"
-              >
-                資料骨架參考：回收大百科
-              </a>
-            </p>
-          </footer>
+          <Footer />
         </div>
       </main>
 

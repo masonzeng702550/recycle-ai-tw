@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import {
   clearAll,
@@ -363,6 +364,8 @@ export default function SettingsPage() {
               <p className="text-xs text-emerald-400">✓ 已清除。</p>
             )}
           </section>
+
+          <Footer />
         </div>
       </main>
     </>

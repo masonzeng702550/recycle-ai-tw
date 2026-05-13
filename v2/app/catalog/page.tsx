@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ManualSearch from "@/components/ManualSearch";
 import { getCityRule } from "@/lib/catalog";
@@ -34,6 +35,8 @@ export default function CatalogPage() {
           </header>
 
           <ManualSearch cityId={cityId} cityName={cityName} />
+
+          <Footer />
         </div>
       </main>
     </>
