@@ -10,6 +10,8 @@ interface Props {
   cityId: CityId;
   cityName: string;
   onRetry: () => void;
+  recognitionId: number | null;
+  imageFile: File | null;
 }
 
 const CONF_LABEL: Record<IdentifiedResult["confidence"], string> = {
@@ -24,7 +26,14 @@ const CONF_COLOR: Record<IdentifiedResult["confidence"], string> = {
   low: "text-rose-400",
 };
 
-export default function ResultCard({ result, cityId, cityName, onRetry }: Props) {
+export default function ResultCard({
+  result,
+  cityId,
+  cityName,
+  onRetry,
+  recognitionId,
+  imageFile,
+}: Props) {
   const item = getItem(result.itemId);
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -159,6 +168,9 @@ export default function ResultCard({ result, cityId, cityName, onRetry }: Props)
         open={reportOpen}
         currentItemId={item.id}
         onClose={() => setReportOpen(false)}
+        recognitionId={recognitionId}
+        imageFile={imageFile}
+        cityId={cityId}
       />
     </div>
   );

@@ -21,7 +21,7 @@ export default function ImageUploader({
   images,
   onChange,
   disabled,
-  max = 3,
+  max = 1,
 }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -88,7 +88,7 @@ export default function ImageUploader({
             +
           </span>
           <span className="text-xs text-neutral-500 hidden sm:inline">
-            點擊或拖放圖片至此（最多 {max} 張）
+            點擊或拖放圖片至此（{max} 張）
           </span>
           <span className="text-xs text-neutral-500 sm:hidden">
             點擊拍照或選擇圖片
@@ -97,7 +97,7 @@ export default function ImageUploader({
             ref={inputRef}
             type="file"
             accept="image/*"
-            multiple
+            multiple={max > 1}
             disabled={!canAddMore}
             onChange={handleInputChange}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -134,7 +134,7 @@ export default function ImageUploader({
               <input
                 type="file"
                 accept="image/*"
-                multiple
+                multiple={max > 1}
                 disabled={!canAddMore}
                 onChange={handleInputChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
