@@ -102,7 +102,18 @@ export default function ReportsPage() {
               </a>
               <div className="p-4 flex flex-col gap-2 text-sm">
                 <div className="flex items-center justify-between text-xs text-neutral-500">
-                  <span>#{r.id}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span>#{r.id}</span>
+                    {r.userComment?.startsWith("[自動]") ? (
+                      <span className="px-1.5 py-0.5 rounded-full bg-amber-950/60 border border-amber-900/50 text-[10px] text-amber-300">
+                        AI 不確定
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 rounded-full bg-rose-950/60 border border-rose-900/50 text-[10px] text-rose-300">
+                        使用者回報
+                      </span>
+                    )}
+                  </span>
                   <span>{fmtTime(r.createdAt)}</span>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-400">

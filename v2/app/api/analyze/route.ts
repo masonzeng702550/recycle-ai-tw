@@ -1,5 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { insertRecognition, getOrgByCode } from "@/lib/db";
+import {
+  insertErrorReport,
+  insertRecognition,
+  getOrgByCode,
+} from "@/lib/db";
+import { uploadErrorReportImage } from "@/lib/blob";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { analyzeWithKey } from "@/lib/gemini-server";
 import type { KeyMode } from "@/lib/types";
@@ -93,6 +98,33 @@ export async function POST(req: NextRequest) {
       orgCode: keyMode === "org" ? storedOrgCode : null,
       raw: result,
     });
+
+    // 「不確定」也算一種錯誤回報：自動把照片留下供 admin 改善資料庫
+    if (result.status === "uncertain") {
+      try {
+        const filename =
+          image instanceof File ? image.name : `uncertain-${Date.now()}.jpg`;
+        const { url, pathname } = await uploadErrorReportImage(
+          image,
+          filename,
+        );
+        const partial =
+          "partialName" in result && result.partialName
+            ? `（AI 推測：${result.partialName}）`
+            : "";
+        await insertErrorReport({
+          recognitionId,
+          blobUrl: url,
+          blobPathname: pathname,
+          userComment: `[自動] AI 判斷為不確定${partial}`,
+          reportedItemId: null,
+          cityId,
+        });
+      } catch (e) {
+        // 不要因為錯誤回報失敗而破壞主流程
+        console.error("[/api/analyze] uncertain auto-report failed", e);
+      }
+    }
 
     const body: AnalyzeApiResponse = { recognitionId, result };
     return NextResponse.json(body);
