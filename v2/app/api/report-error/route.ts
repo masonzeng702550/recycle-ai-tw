@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       userComment,
       reportedItemId,
       cityId,
+      source: "manual",
     });
 
     const body: ReportErrorApiResponse = { reportId };

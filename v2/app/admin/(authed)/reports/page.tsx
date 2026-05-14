@@ -104,13 +104,17 @@ export default function ReportsPage() {
                 <div className="flex items-center justify-between text-xs text-neutral-500">
                   <span className="flex items-center gap-1.5">
                     <span>#{r.id}</span>
-                    {r.userComment?.startsWith("[自動]") ? (
+                    {r.source === "auto_uncertain" ? (
                       <span className="px-1.5 py-0.5 rounded-full bg-amber-950/60 border border-amber-900/50 text-[10px] text-amber-300">
-                        AI 不確定
+                        異動回報 · AI 不確定
+                      </span>
+                    ) : r.source === "auto_error" ? (
+                      <span className="px-1.5 py-0.5 rounded-full bg-orange-950/60 border border-orange-900/50 text-[10px] text-orange-300">
+                        異動回報 · AI 失敗
                       </span>
                     ) : (
                       <span className="px-1.5 py-0.5 rounded-full bg-rose-950/60 border border-rose-900/50 text-[10px] text-rose-300">
-                        使用者回報
+                        人工回報
                       </span>
                     )}
                   </span>

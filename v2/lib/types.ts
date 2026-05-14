@@ -104,6 +104,8 @@ export interface RecognitionRecord {
   orgCode: string | null;
 }
 
+export type ErrorReportSource = "manual" | "auto_uncertain" | "auto_error";
+
 export interface ErrorReportRecord {
   id: number;
   createdAt: string;
@@ -112,6 +114,7 @@ export interface ErrorReportRecord {
   userComment: string | null;
   reportedItemId: string | null;
   cityId: string | null;
+  source: ErrorReportSource;
 }
 
 export interface AdminStats {

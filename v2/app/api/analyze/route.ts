@@ -99,30 +99,42 @@ export async function POST(req: NextRequest) {
       raw: result,
     });
 
-    // 「不確定」也算一種錯誤回報：自動把照片留下供 admin 改善資料庫
-    if (result.status === "uncertain") {
+    // 「不確定」與「錯誤」都自動歸檔成異動回報，照片永久保留供 admin 改善
+    if (result.status === "uncertain" || result.status === "error") {
       try {
+        const isUncertain = result.status === "uncertain";
         const filename =
-          image instanceof File ? image.name : `uncertain-${Date.now()}.jpg`;
+          image instanceof File
+            ? image.name
+            : `${isUncertain ? "uncertain" : "error"}-${Date.now()}.jpg`;
         const { url, pathname } = await uploadErrorReportImage(
           image,
           filename,
         );
-        const partial =
-          "partialName" in result && result.partialName
-            ? `（AI 推測：${result.partialName}）`
-            : "";
+
+        let comment: string;
+        if (isUncertain) {
+          const partial =
+            "partialName" in result && result.partialName
+              ? `（AI 推測：${result.partialName}）`
+              : "";
+          comment = `[異動] AI 判斷為不確定${partial}`;
+        } else {
+          comment = `[異動] AI 辨識失敗：${result.message}`;
+        }
+
         await insertErrorReport({
           recognitionId,
           blobUrl: url,
           blobPathname: pathname,
-          userComment: `[自動] AI 判斷為不確定${partial}`,
+          userComment: comment,
           reportedItemId: null,
           cityId,
+          source: isUncertain ? "auto_uncertain" : "auto_error",
         });
       } catch (e) {
-        // 不要因為錯誤回報失敗而破壞主流程
-        console.error("[/api/analyze] uncertain auto-report failed", e);
+        // 不要因為自動歸檔失敗而破壞主流程
+        console.error("[/api/analyze] auto-report failed", e);
       }
     }
 

@@ -34,6 +34,17 @@ CREATE TABLE IF NOT EXISTS error_reports (
 
 CREATE INDEX IF NOT EXISTS idx_reports_created ON error_reports (created_at DESC);
 
+-- v2.1.x：來源欄位（manual = 人工回報；auto_uncertain / auto_error = 異動回報）
+ALTER TABLE error_reports
+  ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'manual';
+
+-- 把舊版 [自動] 前綴的人工分類列改成 auto_uncertain（idempotent — 第二次跑沒列符合）
+UPDATE error_reports
+  SET source = 'auto_uncertain'
+  WHERE source = 'manual' AND user_comment LIKE '[自動]%';
+
+CREATE INDEX IF NOT EXISTS idx_reports_source ON error_reports (source);
+
 CREATE TABLE IF NOT EXISTS organizations (
   id              SERIAL PRIMARY KEY,
   code            TEXT UNIQUE NOT NULL,                -- 使用者輸入的代號

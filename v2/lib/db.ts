@@ -5,6 +5,7 @@ import { sql } from "@vercel/postgres";
 import type {
   AdminStats,
   ErrorReportRecord,
+  ErrorReportSource,
   KeyMode,
   OrgPublicInfo,
   RecognitionRecord,
@@ -82,15 +83,19 @@ export interface NewErrorReport {
   userComment?: string | null;
   reportedItemId?: string | null;
   cityId?: string | null;
+  source?: ErrorReportSource; // 預設 'manual'
 }
 
 export async function insertErrorReport(r: NewErrorReport): Promise<number> {
+  const source: ErrorReportSource = r.source ?? "manual";
   const { rows } = await sql<{ id: number }>`
     INSERT INTO error_reports
-      (recognition_id, blob_url, blob_pathname, user_comment, reported_item_id, city_id)
+      (recognition_id, blob_url, blob_pathname, user_comment,
+       reported_item_id, city_id, source)
     VALUES
       (${r.recognitionId ?? null}, ${r.blobUrl}, ${r.blobPathname},
-       ${r.userComment ?? null}, ${r.reportedItemId ?? null}, ${r.cityId ?? null})
+       ${r.userComment ?? null}, ${r.reportedItemId ?? null},
+       ${r.cityId ?? null}, ${source})
     RETURNING id
   `;
   return rows[0].id;
@@ -104,7 +109,7 @@ export async function listErrorReports(opts?: {
   const offset = opts?.offset ?? 0;
   const { rows } = await sql`
     SELECT id, created_at, recognition_id, blob_url, user_comment,
-           reported_item_id, city_id
+           reported_item_id, city_id, source
     FROM error_reports
     ORDER BY created_at DESC
     LIMIT ${limit} OFFSET ${offset}
@@ -117,6 +122,7 @@ export async function listErrorReports(opts?: {
     userComment: (r.user_comment as string | null) ?? null,
     reportedItemId: (r.reported_item_id as string | null) ?? null,
     cityId: (r.city_id as string | null) ?? null,
+    source: (r.source as ErrorReportSource) ?? "manual",
   }));
 }
 
