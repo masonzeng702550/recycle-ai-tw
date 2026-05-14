@@ -55,9 +55,33 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
+    // 只有「分頁可見」時才 polling，省 Neon CU。間隔拉到 60s。
+    let timer: ReturnType<typeof setInterval> | null = null;
+    function start() {
+      if (timer) return;
+      timer = setInterval(load, 60_000);
+    }
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+    function onVis() {
+      if (document.visibilityState === "visible") {
+        load();
+        start();
+      } else {
+        stop();
+      }
+    }
     load();
-    const t = setInterval(load, 30_000);
-    return () => clearInterval(t);
+    if (document.visibilityState === "visible") start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [load]);
 
   const identifiedRate =
@@ -71,7 +95,7 @@ export default function AdminDashboardPage() {
         <div>
           <h1 className="font-serif font-bold text-2xl sm:text-3xl">儀表板</h1>
           <p className="text-sm text-neutral-500 mt-1">
-            每 30 秒自動更新
+            每 60 秒自動更新（分頁切走時暫停）
             {updatedAt &&
               ` · 最後更新 ${updatedAt.toLocaleTimeString("zh-TW")}`}
           </p>

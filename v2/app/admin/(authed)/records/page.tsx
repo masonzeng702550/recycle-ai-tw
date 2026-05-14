@@ -91,8 +91,32 @@ export default function RecordsPage() {
 
   useEffect(() => {
     if (!auto) return;
-    const t = setInterval(load, 30_000);
-    return () => clearInterval(t);
+    // 只有「分頁可見」時才 polling
+    let timer: ReturnType<typeof setInterval> | null = null;
+    function start() {
+      if (timer) return;
+      timer = setInterval(load, 60_000);
+    }
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+    function onVis() {
+      if (document.visibilityState === "visible") {
+        load();
+        start();
+      } else {
+        stop();
+      }
+    }
+    if (document.visibilityState === "visible") start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [auto, load]);
 
   const hasNext = records.length === PAGE_SIZE;

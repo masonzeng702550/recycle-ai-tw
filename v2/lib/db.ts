@@ -219,8 +219,24 @@ export async function setAdminPasswordHash(hash: string): Promise<void> {
 }
 
 // ─── 統計 ─────────────────────────────────────────────────
+// 同一個 serverless instance 內快取 60 秒，多個 admin 同時開儀表板時
+// 不會打爆 Neon CU 額度。serverless 跨 instance 不共享，所以這只是個
+// 「便宜的緩衝層」，但對 30s polling 的場景已經能擋掉 ~95% 的查詢。
+
+const STATS_TTL_MS = 60_000;
+const _statsCache = new Map<number, { ts: number; data: AdminStats }>();
 
 export async function getStats(days = 30): Promise<AdminStats> {
+  const cached = _statsCache.get(days);
+  if (cached && Date.now() - cached.ts < STATS_TTL_MS) {
+    return cached.data;
+  }
+  const data = await computeStats(days);
+  _statsCache.set(days, { ts: Date.now(), data });
+  return data;
+}
+
+async function computeStats(days: number): Promise<AdminStats> {
   const [totals, groups, byDay, reports] = await Promise.all([
     sql`
       SELECT status, COUNT(*)::int AS count
