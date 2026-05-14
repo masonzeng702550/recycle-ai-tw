@@ -5,12 +5,12 @@
     "paper": {
       "disposal": "折疊壓平後於資源回收日（高雄市分週收運）交付清潔隊資源回收車。紙箱請拆扁。",
       "binColor": "資源回收車（紙類）",
-      "sourceUrl": "https://ksedb.kcg.gov.tw/"
+      "sourceUrl": "https://ksepb.kcg.gov.tw/"
     },
     "plastic": {
       "disposal": "清洗、晾乾後於資源回收日交付資源回收車。可回收容器以塑膠瓶、塑膠盒為主。",
       "binColor": "資源回收車（塑膠）",
-      "sourceUrl": "https://ksedb.kcg.gov.tw/"
+      "sourceUrl": "https://ksepb.kcg.gov.tw/"
     },
     "glass": {
       "disposal": "清洗乾淨後於資源回收日交付清潔隊。破損玻璃請以報紙包覆並標示。",
@@ -35,7 +35,7 @@
     "large": {
       "disposal": "撥打 07-3373267 或上環保局網站預約大型廢棄物收運（每月限定次數免費），依約定時間放置。",
       "binColor": "需預約收運",
-      "sourceUrl": "https://ksedb.kcg.gov.tw/"
+      "sourceUrl": "https://ksepb.kcg.gov.tw/"
     },
     "electronics": {
       "disposal": "送至各區清潔隊資源回收站，或購買新品時交由販售業者免費回收。",
