@@ -111,6 +111,7 @@ export interface ErrorReportRecord {
   createdAt: string;
   recognitionId: number | null;
   blobUrl: string;
+  blobPathname: string;
   userComment: string | null;
   reportedItemId: string | null;
   cityId: string | null;

@@ -108,8 +108,8 @@ export async function listErrorReports(opts?: {
   const limit = Math.min(opts?.limit ?? 100, 500);
   const offset = opts?.offset ?? 0;
   const { rows } = await sql`
-    SELECT id, created_at, recognition_id, blob_url, user_comment,
-           reported_item_id, city_id, source
+    SELECT id, created_at, recognition_id, blob_url, blob_pathname,
+           user_comment, reported_item_id, city_id, source
     FROM error_reports
     ORDER BY created_at DESC
     LIMIT ${limit} OFFSET ${offset}
@@ -119,6 +119,7 @@ export async function listErrorReports(opts?: {
     createdAt: (r.created_at as Date).toISOString(),
     recognitionId: (r.recognition_id as number | null) ?? null,
     blobUrl: r.blob_url as string,
+    blobPathname: r.blob_pathname as string,
     userComment: (r.user_comment as string | null) ?? null,
     reportedItemId: (r.reported_item_id as string | null) ?? null,
     cityId: (r.city_id as string | null) ?? null,

@@ -1,7 +1,9 @@
 import "server-only";
 import { put } from "@vercel/blob";
 
-// 把錯誤回報的圖檔上傳到 Vercel Blob，回傳公開 URL
+// 把錯誤回報的圖檔上傳到 Vercel Blob。
+// Store 是 private，所以這裡不傳 access；前端讀圖時必須走 /api/admin/blob-proxy
+// 由 server 端帶 token 抓回再 stream，避免曝露 token 給瀏覽器。
 export async function uploadErrorReportImage(
   file: Blob,
   originalName?: string,
@@ -11,9 +13,10 @@ export async function uploadErrorReportImage(
   const rand = Math.random().toString(36).slice(2, 10);
   const pathname = `error-reports/${ts}-${rand}${ext}`;
   const result = await put(pathname, file, {
-    access: "public",
+    access: "private",
     contentType: file.type || "image/jpeg",
     addRandomSuffix: false,
+    allowOverwrite: false,
   });
   return { url: result.url, pathname: result.pathname };
 }

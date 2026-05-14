@@ -84,14 +84,14 @@ export default function ReportsPage() {
               className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden flex flex-col"
             >
               <a
-                href={r.blobUrl}
+                href={`/api/admin/blob-proxy?p=${encodeURIComponent(r.blobPathname)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block bg-black aspect-video relative group"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={r.blobUrl}
+                  src={`/api/admin/blob-proxy?p=${encodeURIComponent(r.blobPathname)}`}
                   alt={`回報 #${r.id}`}
                   className="w-full h-full object-contain"
                   loading="lazy"
