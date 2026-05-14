@@ -48,6 +48,30 @@ function validate(parsed: unknown): AnalyzeResult {
       return { status: "error", message: "未知 group。" };
     }
     const conf = obj.confidence;
+
+    // 解析複合材質 components（合法的部件才保留；空陣列 → 不附）
+    let components:
+      | { itemId: string; itemName: string; group: CategoryGroup }[]
+      | undefined;
+    if (Array.isArray(obj.components)) {
+      components = (obj.components as unknown[])
+        .map((c): { itemId: string; itemName: string; group: CategoryGroup } | null => {
+          if (!c || typeof c !== "object") return null;
+          const co = c as Record<string, unknown>;
+          const cid = String(co.itemId ?? "");
+          const cKnown = items.find((it) => it.id === cid);
+          if (!cKnown) return null;
+          if (!isGroup(co.group)) return null;
+          return {
+            itemId: cid,
+            itemName: String(co.itemName ?? cKnown.nameZh),
+            group: co.group,
+          };
+        })
+        .filter((c): c is NonNullable<typeof c> => c !== null);
+      if (components.length === 0) components = undefined;
+    }
+
     return {
       status: "identified",
       itemId,
@@ -58,6 +82,7 @@ function validate(parsed: unknown): AnalyzeResult {
           ? conf
           : "medium",
       explanation: String(obj.explanation ?? ""),
+      ...(components ? { components } : {}),
     };
   }
   if (obj.status === "uncertain") {

@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { GROUP_EMOJI, GROUP_LABELS, getDisposal, getItem } from "@/lib/catalog";
-import type { CityId, IdentifiedResult } from "@/lib/types";
+import type {
+  CityId,
+  IdentifiedComponent,
+  IdentifiedResult,
+} from "@/lib/types";
 import ReportDialog from "./ReportDialog";
 
 interface Props {
@@ -53,6 +57,7 @@ export default function ResultCard({
 
   const { rule, isItemSpecific } = getDisposal(cityId, item);
   const tips = [...(rule.notes ?? []), ...(item.defaultTips ?? [])];
+  const composite = result.components && result.components.length >= 2;
 
   return (
     <div className="rounded-3xl bg-neutral-900 overflow-hidden">
@@ -73,7 +78,15 @@ export default function ResultCard({
               <span className="text-xs text-neutral-400">
                 {GROUP_LABELS[result.group]}
               </span>
-              {!isItemSpecific && (
+              {composite && (
+                <>
+                  <span className="text-neutral-700">·</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-950/60 border border-amber-900/50 text-amber-300">
+                    複合材質 · 需分拆
+                  </span>
+                </>
+              )}
+              {!isItemSpecific && !composite && (
                 <>
                   <span className="text-neutral-700">·</span>
                   <span className="text-[10px] text-neutral-600">
@@ -87,29 +100,40 @@ export default function ResultCard({
       </div>
 
       <div className="p-5 sm:p-6 space-y-5">
-        <section className="space-y-2">
-          <h3 className="font-serif text-xs font-semibold text-neutral-500 uppercase tracking-widest">
-            {cityName}處理方式
-          </h3>
-          <p className="text-sm sm:text-base text-neutral-200 leading-relaxed">
-            {rule.disposal}
-          </p>
-        </section>
+        {composite ? (
+          <ComponentBreakdown
+            components={result.components!}
+            cityId={cityId}
+            cityName={cityName}
+          />
+        ) : (
+          <>
+            <section className="space-y-2">
+              <h3 className="font-serif text-xs font-semibold text-neutral-500 uppercase tracking-widest">
+                {cityName}處理方式
+              </h3>
+              <p className="text-sm sm:text-base text-neutral-200 leading-relaxed">
+                {rule.disposal}
+              </p>
+            </section>
 
-        {rule.binColor && (
-          <div className="flex items-center gap-2 text-sm text-neutral-400 bg-neutral-800 rounded-xl px-4 py-3">
-            <span>🗑️</span>
-            <span>
-              投入：<strong className="text-neutral-100">{rule.binColor}</strong>
-            </span>
-          </div>
-        )}
+            {rule.binColor && (
+              <div className="flex items-center gap-2 text-sm text-neutral-400 bg-neutral-800 rounded-xl px-4 py-3">
+                <span>🗑️</span>
+                <span>
+                  投入：
+                  <strong className="text-neutral-100">{rule.binColor}</strong>
+                </span>
+              </div>
+            )}
 
-        {rule.schedule && (
-          <div className="flex items-center gap-2 text-sm text-neutral-400 bg-neutral-800 rounded-xl px-4 py-3">
-            <span>🕒</span>
-            <span>{rule.schedule}</span>
-          </div>
+            {rule.schedule && (
+              <div className="flex items-center gap-2 text-sm text-neutral-400 bg-neutral-800 rounded-xl px-4 py-3">
+                <span>🕒</span>
+                <span>{rule.schedule}</span>
+              </div>
+            )}
+          </>
         )}
 
         <section className="space-y-2">
@@ -173,5 +197,62 @@ export default function ResultCard({
         cityId={cityId}
       />
     </div>
+  );
+}
+
+function ComponentBreakdown({
+  components,
+  cityId,
+  cityName,
+}: {
+  components: IdentifiedComponent[];
+  cityId: CityId;
+  cityName: string;
+}) {
+  return (
+    <section className="space-y-3">
+      <header className="space-y-1">
+        <h3 className="font-serif text-xs font-semibold text-amber-300 uppercase tracking-widest">
+          {cityName}分拆處理方式
+        </h3>
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          此物品由多種材質組成，請拆解後分別處理：
+        </p>
+      </header>
+
+      <ul className="space-y-3">
+        {components.map((c, i) => {
+          const cItem = getItem(c.itemId);
+          if (!cItem) return null;
+          const { rule } = getDisposal(cityId, cItem);
+          return (
+            <li
+              key={`${c.itemId}-${i}`}
+              className="bg-neutral-950/60 border border-neutral-800 rounded-2xl p-4 space-y-2"
+            >
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xl shrink-0">
+                  {cItem.emoji ?? GROUP_EMOJI[c.group]}
+                </span>
+                <span className="font-semibold text-neutral-100">
+                  {c.itemName}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-800 text-neutral-400">
+                  {GROUP_LABELS[c.group]}
+                </span>
+              </div>
+              <p className="text-sm text-neutral-300 leading-relaxed">
+                {rule.disposal}
+              </p>
+              {rule.binColor && (
+                <div className="text-xs text-neutral-400">
+                  → <span className="text-neutral-200">{rule.binColor}</span>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

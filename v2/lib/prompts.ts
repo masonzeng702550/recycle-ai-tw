@@ -37,7 +37,11 @@ ${itemBrief}
   "itemName": "你判定的物品中文名稱（可比 itemId 對應名更具體）",
   "group": "paper|plastic|glass|metal|food|general|hazardous|large|electronics|clothing",
   "confidence": "high|medium|low",
-  "explanation": "1~2 句話說明判斷依據與注意事項"
+  "explanation": "1~2 句話說明判斷依據與注意事項",
+  "components": [
+    // 選填：物品由「多種需分別丟棄的材質」組成時才填
+    { "itemId": "...", "itemName": "...", "group": "..." }
+  ]
 }
 
 【情況 B：無法確定】
@@ -55,7 +59,29 @@ ${itemBrief}
 - itemId 必須來自上方清單；group 必須是上方 10 種之一。
 - confidence 對應大致機率：high≥90%、medium 60-90%、low<60%。
 - 若你的 confidence 為 low，建議改回傳 uncertain 並提供 questions（最多 3 題）以縮小範圍。
-- 只回傳 JSON，不要 markdown 圍欄、不要其他文字。`;
+- 只回傳 JSON，不要 markdown 圍欄、不要其他文字。
+
+【複合材質物品（重要）】
+若物品由「多個需要分別丟棄的可分離部件」組成（如手搖飲＝紙杯＋塑膠吸管＋塑膠封膜、便當＝紙餐盒＋塑膠湯匙、外帶咖啡＝紙杯＋塑膠杯蓋），請：
+1. itemId / itemName / group 仍填整體最具代表性的部件（通常是體積最大者，如「紙杯」）。
+2. 額外填入 components 陣列，列出**每個應分別處理的部件**（包含主體本身），每個元素也是 { itemId, itemName, group }，itemId 必須來自上方清單。
+3. explanation 中提醒「請拆解後分別處理」。
+4. 單一材質（如一個寶特瓶、一張紙）請勿填 components。
+
+範例（手搖飲料）：
+{
+  "status": "identified",
+  "itemId": "paper_cup",
+  "itemName": "手搖飲（含杯、吸管、封膜）",
+  "group": "paper",
+  "confidence": "high",
+  "explanation": "此為手搖飲，紙杯為主體，請拆解後分別處理：紙杯歸紙容器、塑膠吸管與封膜歸一般垃圾。",
+  "components": [
+    { "itemId": "paper_cup", "itemName": "外層紙杯", "group": "paper" },
+    { "itemId": "straw", "itemName": "塑膠吸管", "group": "general" },
+    { "itemId": "plastic_bag", "itemName": "塑膠封膜", "group": "general" }
+  ]
+}`;
 }
 
 export function buildClarifyPrompt(

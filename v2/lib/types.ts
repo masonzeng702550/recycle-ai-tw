@@ -43,6 +43,12 @@ export interface CityRule {
 
 export type Confidence = "high" | "medium" | "low";
 
+export interface IdentifiedComponent {
+  itemId: string;
+  itemName: string;
+  group: CategoryGroup;
+}
+
 export interface IdentifiedResult {
   status: "identified";
   itemId: string;
@@ -50,6 +56,8 @@ export interface IdentifiedResult {
   group: CategoryGroup;
   confidence: Confidence;
   explanation: string;
+  // 複合材質物品才會有；列出每個需要分拆處理的部件
+  components?: IdentifiedComponent[];
 }
 
 export interface UncertainResult {
