@@ -5,6 +5,7 @@ import {
   getOrgByCode,
 } from "@/lib/db";
 import { uploadErrorReportImage } from "@/lib/blob";
+import { ensureGeminiSafeImage } from "@/lib/heic-server";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { analyzeWithKey } from "@/lib/gemini-server";
 import type { KeyMode } from "@/lib/types";
@@ -77,8 +78,12 @@ export async function POST(req: NextRequest) {
       storedOrgCode = org.code;
     }
 
-    // Call Gemini
-    const result = await analyzeWithKey(resolvedKey, [image]);
+    // HEIC fallback：客戶端轉檔失敗時會把原 HEIC 丟過來，這裡再試一次
+    const origName = image instanceof File ? image.name : undefined;
+    const safe = await ensureGeminiSafeImage(image, origName);
+
+    // Call Gemini（用轉好的 JPEG）
+    const result = await analyzeWithKey(resolvedKey, [safe.blob]);
 
     // Persist to DB regardless of status
     const recognitionId = await insertRecognition({
@@ -104,11 +109,10 @@ export async function POST(req: NextRequest) {
       try {
         const isUncertain = result.status === "uncertain";
         const filename =
-          image instanceof File
-            ? image.name
-            : `${isUncertain ? "uncertain" : "error"}-${Date.now()}.jpg`;
+          safe.filename ||
+          `${isUncertain ? "uncertain" : "error"}-${Date.now()}.jpg`;
         const { url, pathname } = await uploadErrorReportImage(
-          image,
+          safe.blob,
           filename,
         );
 
