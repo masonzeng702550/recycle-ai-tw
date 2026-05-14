@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { AdminLoginRequest } from "@/lib/api-contracts";
 
@@ -96,6 +97,13 @@ function LoginForm() {
       <p className="text-xs text-neutral-500 leading-relaxed">
         預設密碼登入後，請至「修改密碼」變更。
       </p>
+
+      <Link
+        href="/"
+        className="text-center text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+      >
+        ← 回到首頁
+      </Link>
     </form>
   );
 }
