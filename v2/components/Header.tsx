@@ -12,6 +12,7 @@ interface HeaderProps {
 
 const NAV = [
   { href: "/", label: "辨識" },
+  { href: "/tutorial", label: "使用教學" },
   { href: "/catalog", label: "資料庫" },
   { href: "/settings", label: "設定" },
 ];
