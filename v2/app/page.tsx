@@ -15,7 +15,9 @@ import {
   getCityId,
   setCityId as saveCityId,
   getKeyMode,
+  setKeyMode as saveKeyMode,
   getOrgCode,
+  setOrgCode as saveOrgCode,
 } from "@/lib/storage";
 import type {
   AnalyzeApiResponse,
@@ -89,11 +91,25 @@ export default function HomePage() {
     saveCityId(id);
   }
 
-  function handleSaveKey(key: string) {
+  function handleSaveOwnKey(key: string) {
     saveApiKey(key);
     setApiKeyState(key);
+    saveKeyMode("own");
+    setKeyModeState("own");
+    setOrgError(null);
     setGateOpen(false);
-    void runAnalyze(key);
+    void runAnalyze({ mode: "own", key });
+  }
+
+  function handleSaveOrg(code: string, name: string) {
+    saveOrgCode(code);
+    setOrgCodeState(code);
+    saveKeyMode("org");
+    setKeyModeState("org");
+    setOrgName(name);
+    setOrgError(null);
+    setGateOpen(false);
+    void runAnalyze({ mode: "org", orgCode: code });
   }
 
   function resetTurnstile() {
@@ -101,25 +117,31 @@ export default function HomePage() {
     setTurnstileResetKey((k) => k + 1);
   }
 
-  async function runAnalyze(keyOverride?: string) {
+  async function runAnalyze(
+    override?:
+      | { mode: "own"; key: string }
+      | { mode: "org"; orgCode: string }
+  ) {
     if (images.length === 0) return;
 
-    // 組織模式但代號驗證失敗：擋下
-    if (keyMode === "org") {
-      if (!orgCode) {
-        setState({ kind: "error", message: "尚未設定組織代號，請至設定頁。" });
-        return;
-      }
-      if (orgError) {
-        setState({ kind: "error", message: orgError });
-        return;
-      }
+    const effectiveMode: KeyMode = override?.mode ?? keyMode;
+    const effectiveKey =
+      override?.mode === "own" ? override.key : apiKey;
+    const effectiveOrgCode =
+      override?.mode === "org" ? override.orgCode : orgCode;
+
+    // 沒有任何驗證資訊 → 開啟 Gate 讓使用者選擇
+    if (
+      (effectiveMode === "own" && !effectiveKey) ||
+      (effectiveMode === "org" && !effectiveOrgCode)
+    ) {
+      setGateOpen(true);
+      return;
     }
 
-    // 自帶 Key 模式：缺 Key 時開啟 Gate
-    const key = keyOverride ?? apiKey;
-    if (keyMode === "own" && !key) {
-      setGateOpen(true);
+    // 組織模式但代號驗證失敗：擋下
+    if (effectiveMode === "org" && !override && orgError) {
+      setState({ kind: "error", message: orgError });
       return;
     }
 
@@ -140,11 +162,11 @@ export default function HomePage() {
       fd.append("image", sendable);
       fd.append("cityId", cityId);
       fd.append("turnstileToken", turnstileToken);
-      fd.append("keyMode", keyMode);
-      if (keyMode === "own") {
-        fd.append("apiKey", key);
+      fd.append("keyMode", effectiveMode);
+      if (effectiveMode === "own") {
+        fd.append("apiKey", effectiveKey);
       } else {
-        fd.append("orgCode", orgCode);
+        fd.append("orgCode", effectiveOrgCode);
       }
 
       const res = await fetch("/api/analyze", {
@@ -314,7 +336,8 @@ export default function HomePage() {
       <ApiKeyGate
         open={gateOpen}
         onClose={() => setGateOpen(false)}
-        onSave={handleSaveKey}
+        onSaveOwnKey={handleSaveOwnKey}
+        onSaveOrg={handleSaveOrg}
       />
     </>
   );
