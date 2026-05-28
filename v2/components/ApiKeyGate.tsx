@@ -99,7 +99,9 @@ export default function ApiKeyGate({
                   使用組織代號（推薦）
                 </div>
                 <div className="text-xs text-neutral-500 mt-1">
-                  輸入老師提供的代號（例如 t202605）即可立即開始辨識。
+                  請直接輸入{" "}
+                  <span className="font-mono text-neutral-200">t202605</span>{" "}
+                  即可立即開始辨識。
                 </div>
               </button>
 
@@ -130,7 +132,9 @@ export default function ApiKeyGate({
             <header>
               <h2 className="font-serif text-xl font-bold">輸入組織代號</h2>
               <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
-                請輸入老師發放的組織代號。代號僅供本班同學使用，請勿外傳。
+                請直接輸入{" "}
+                <span className="font-mono text-neutral-200">t202605</span>{" "}
+                即可開始使用。代號僅供本班同學使用，請勿外傳。
               </p>
             </header>
 
@@ -146,7 +150,7 @@ export default function ApiKeyGate({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !orgValidating) void submitOrg();
                 }}
-                placeholder="例如 t202605"
+                placeholder="t202605"
                 className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-neutral-600"
               />
               {orgError && (
