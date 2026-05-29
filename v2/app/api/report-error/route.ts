@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { insertErrorReport } from "@/lib/db";
 import { uploadErrorReportImage } from "@/lib/blob";
 import { ensureGeminiSafeImage } from "@/lib/heic-server";
+import { compressForStorage } from "@/lib/image-compress";
 import type { ReportErrorApiResponse } from "@/lib/api-contracts";
 
 export const runtime = "nodejs";
@@ -43,7 +44,10 @@ export async function POST(req: NextRequest) {
     // HEIC fallback：客戶端轉檔失敗時，這裡轉成 JPEG 再存
     // 否則 admin 用瀏覽器看圖會壞掉
     const safe = await ensureGeminiSafeImage(image, originalName);
-    const uploaded = await uploadErrorReportImage(safe.blob, safe.filename);
+    // 壓縮：縮到 1600px、JPEG q75，省存儲空間
+    const compressed = await compressForStorage(safe.blob);
+    const storedName = safe.filename.replace(/\.[^.]+$/, "") + compressed.extHint;
+    const uploaded = await uploadErrorReportImage(compressed.blob, storedName);
 
     const reportId = await insertErrorReport({
       recognitionId,

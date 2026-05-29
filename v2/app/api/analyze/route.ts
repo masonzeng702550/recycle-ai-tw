@@ -6,6 +6,7 @@ import {
 } from "@/lib/db";
 import { uploadErrorReportImage } from "@/lib/blob";
 import { ensureGeminiSafeImage } from "@/lib/heic-server";
+import { compressForStorage } from "@/lib/image-compress";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { analyzeWithKey } from "@/lib/gemini-server";
 import type { KeyMode } from "@/lib/types";
@@ -108,11 +109,15 @@ export async function POST(req: NextRequest) {
     if (result.status === "uncertain" || result.status === "error") {
       try {
         const isUncertain = result.status === "uncertain";
-        const filename =
+        const baseFilename =
           safe.filename ||
           `${isUncertain ? "uncertain" : "error"}-${Date.now()}.jpg`;
+        // 壓縮：縮到 1600px、JPEG q75，省存儲空間
+        const compressed = await compressForStorage(safe.blob);
+        const filename =
+          baseFilename.replace(/\.[^.]+$/, "") + compressed.extHint;
         const { url, pathname } = await uploadErrorReportImage(
-          safe.blob,
+          compressed.blob,
           filename,
         );
 
