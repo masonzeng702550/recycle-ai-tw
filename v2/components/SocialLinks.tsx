@@ -1,10 +1,11 @@
 import { SOCIAL } from "@/lib/social";
 
 // 首頁的 IG / 回饋表單外連按鈕。
-// RWD：手機上維持並排 pill（夠窄會自動換行），桌機並排無壓力。
+// 用 Fragment：父層用 flex flex-wrap gap-2 統一排版，方便和其他 pill
+// （例如「加到手機桌面」）並排，個別在窄螢幕上自動換行。
 export default function SocialLinks() {
   return (
-    <div className="flex flex-wrap gap-2">
+    <>
       <a
         href={SOCIAL.instagram}
         target="_blank"
@@ -25,7 +26,7 @@ export default function SocialLinks() {
         <FormIcon className="w-4 h-4" />
         填寫回饋表單
       </a>
-    </div>
+    </>
   );
 }
 

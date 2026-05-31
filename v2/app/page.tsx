@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import ImageUploader from "@/components/ImageUploader";
 import ApiKeyGate from "@/components/ApiKeyGate";
 import FirstSuccessPromo from "@/components/FirstSuccessPromo";
+import InstallAppButton from "@/components/InstallAppButton";
 import ResultCard from "@/components/ResultCard";
 import SocialLinks from "@/components/SocialLinks";
 import SystemBusyModal from "@/components/SystemBusyModal";
@@ -291,8 +292,11 @@ export default function HomePage() {
                 </p>
               </header>
 
-              {/* 社群 / 回饋按鈕 */}
-              <SocialLinks />
+              {/* 社群 / 回饋 / 加到主畫面 按鈕 */}
+              <div className="flex flex-wrap gap-2">
+                <SocialLinks />
+                <InstallAppButton />
+              </div>
 
               {/* 來源模式 pill */}
               <SourcePill
