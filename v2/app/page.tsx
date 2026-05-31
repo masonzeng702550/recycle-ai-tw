@@ -5,7 +5,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ImageUploader from "@/components/ImageUploader";
 import ApiKeyGate from "@/components/ApiKeyGate";
+import FirstSuccessPromo from "@/components/FirstSuccessPromo";
 import ResultCard from "@/components/ResultCard";
+import SocialLinks from "@/components/SocialLinks";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { getCityRule } from "@/lib/catalog";
 import { maybeResizeImage } from "@/lib/image-resize";
@@ -18,6 +20,8 @@ import {
   setKeyMode as saveKeyMode,
   getOrgCode,
   setOrgCode as saveOrgCode,
+  getPromoShown,
+  setPromoShown,
 } from "@/lib/storage";
 import type {
   AnalyzeApiResponse,
@@ -50,6 +54,8 @@ export default function HomePage() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [state, setState] = useState<State>({ kind: "idle" });
+  const [promoOpen, setPromoOpen] = useState(false);
+  const promoEverShown = useRef(false);
   const turnstileSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,10 +66,24 @@ export default function HomePage() {
     setKeyModeState(mode);
     setOrgCodeState(code);
 
+    // 已經顯示過 promo 的裝置：直接記號，避免再次彈出
+    if (getPromoShown()) promoEverShown.current = true;
+
     if (mode === "org" && code) {
       void validateOrg(code);
     }
   }, []);
+
+  // 第一次出現 identified 結果時，跳「追蹤 IG / 回饋表單」彈窗
+  useEffect(() => {
+    if (state.kind !== "result") return;
+    if (promoEverShown.current) return;
+    promoEverShown.current = true;
+    setPromoShown(true);
+    // 結果剛渲染先讓使用者看到，再延遲跳廣告
+    const t = setTimeout(() => setPromoOpen(true), 900);
+    return () => clearTimeout(t);
+  }, [state.kind]);
 
   async function validateOrg(code: string) {
     setOrgError(null);
@@ -245,6 +265,9 @@ export default function HomePage() {
                 </p>
               </header>
 
+              {/* 社群 / 回饋按鈕 */}
+              <SocialLinks />
+
               {/* 來源模式 pill */}
               <SourcePill
                 keyMode={keyMode}
@@ -338,6 +361,11 @@ export default function HomePage() {
         onClose={() => setGateOpen(false)}
         onSaveOwnKey={handleSaveOwnKey}
         onSaveOrg={handleSaveOrg}
+      />
+
+      <FirstSuccessPromo
+        open={promoOpen}
+        onClose={() => setPromoOpen(false)}
       />
     </>
   );

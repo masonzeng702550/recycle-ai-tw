@@ -8,6 +8,7 @@ const KEY = {
   reports: "tf:reports",
   orgCode: "tf:orgCode",
   keyMode: "tf:keyMode",
+  promoShown: "tf:promoShown",
 } as const;
 
 function safeGet(key: string): string | null {
@@ -92,6 +93,16 @@ export function setKeyMode(mode: KeyMode) {
   safeSet(KEY.keyMode, mode);
 }
 
+// ─── 第一次辨識成功的廣告彈窗：只跳一次 ──────────────────────────────────
+export function getPromoShown(): boolean {
+  return safeGet(KEY.promoShown) === "1";
+}
+
+export function setPromoShown(shown: boolean) {
+  if (shown) safeSet(KEY.promoShown, "1");
+  else safeRemove(KEY.promoShown);
+}
+
 // ─── 全清 ────────────────────────────────────────────────────────────────
 export function clearAll() {
   safeRemove(KEY.apiKey);
@@ -99,4 +110,5 @@ export function clearAll() {
   safeRemove(KEY.reports);
   safeRemove(KEY.orgCode);
   safeRemove(KEY.keyMode);
+  safeRemove(KEY.promoShown);
 }
