@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { maybePlayEgg } from "@/lib/easter-egg";
 import {
   clearAll,
   getApiKey,
@@ -252,7 +253,11 @@ export default function SettingsPage() {
             <input
               type="password"
               value={apiKey}
-              onChange={(e) => setKey(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setKey(v);
+                maybePlayEgg(v);
+              }}
               placeholder={savedKey ? "輸入新 Key 以覆蓋" : "貼上你的 Key"}
               className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-neutral-600"
             />

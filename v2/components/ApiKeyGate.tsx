@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { maybePlayEgg } from "@/lib/easter-egg";
 import type {
   OrgValidateRequest,
   OrgValidateResponse,
@@ -194,7 +195,11 @@ export default function ApiKeyGate({
                 type="password"
                 autoFocus
                 value={keyInput}
-                onChange={(e) => setKeyInput(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setKeyInput(v);
+                  maybePlayEgg(v);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") submitOwn();
                 }}
