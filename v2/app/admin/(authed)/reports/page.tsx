@@ -17,11 +17,22 @@ function fmtTime(iso: string): string {
   return d.toLocaleString("zh-TW", { hour12: false });
 }
 
+type CleanupResult = {
+  ok: boolean;
+  reportsDeleted: number;
+  blobsDeleted: number;
+  blobsFailed: number;
+  recognitionsDeleted: number;
+  message?: string;
+};
+
 export default function ReportsPage() {
   const [reports, setReports] = useState<ErrorReportRecord[]>([]);
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cleaning, setCleaning] = useState(false);
+  const [cleanupMsg, setCleanupMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,6 +57,42 @@ export default function ReportsPage() {
     load();
   }, [load]);
 
+  const runCleanup = useCallback(async () => {
+    if (cleaning) return;
+    if (
+      !confirm(
+        "確定要清掉所有「Gemini 已達上限或被限速」的自動歸檔紀錄嗎？" +
+          "這些不是真正的辨識錯誤，會連同 blob 圖片和對應的 recognition 一起刪除。",
+      )
+    ) {
+      return;
+    }
+    setCleaning(true);
+    setCleanupMsg(null);
+    try {
+      const resp = await fetch("/api/admin/cleanup-rate-limit", {
+        method: "POST",
+      });
+      if (!resp.ok) {
+        setCleanupMsg(`清理失敗 (${resp.status})`);
+        return;
+      }
+      const data = (await resp.json()) as CleanupResult;
+      if (data.message) {
+        setCleanupMsg(data.message);
+      } else {
+        setCleanupMsg(
+          `已清理：error_reports ${data.reportsDeleted} 筆、recognition_records ${data.recognitionsDeleted} 筆、blob ${data.blobsDeleted} 個（失敗 ${data.blobsFailed}）`,
+        );
+      }
+      await load();
+    } catch {
+      setCleanupMsg("網路錯誤，請重試");
+    } finally {
+      setCleaning(false);
+    }
+  }, [cleaning, load]);
+
   const hasNext = reports.length === PAGE_SIZE;
 
   return (
@@ -57,14 +104,31 @@ export default function ReportsPage() {
             圖片永久保留於 Vercel Blob，供管理員審查與資料庫改善
           </p>
         </div>
-        <button
-          type="button"
-          onClick={load}
-          className="rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900"
-        >
-          重新整理
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={runCleanup}
+            disabled={cleaning}
+            className="rounded-full border border-amber-900/60 bg-amber-950/30 text-amber-300 px-4 py-1.5 text-sm hover:bg-amber-950/60 disabled:opacity-40"
+            title="刪除所有「Gemini 已達上限或被限速」的自動歸檔紀錄與圖片"
+          >
+            {cleaning ? "清理中…" : "清掉速率限制紀錄"}
+          </button>
+          <button
+            type="button"
+            onClick={load}
+            className="rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900"
+          >
+            重新整理
+          </button>
+        </div>
       </div>
+
+      {cleanupMsg && (
+        <div className="text-sm text-emerald-300 bg-emerald-950/40 border border-emerald-900/60 rounded-2xl px-4 py-3">
+          {cleanupMsg}
+        </div>
+      )}
 
       {error && (
         <div className="text-sm text-red-400 bg-red-950/40 border border-red-900/60 rounded-2xl px-4 py-3">

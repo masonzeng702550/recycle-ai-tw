@@ -8,6 +8,7 @@ import ApiKeyGate from "@/components/ApiKeyGate";
 import FirstSuccessPromo from "@/components/FirstSuccessPromo";
 import ResultCard from "@/components/ResultCard";
 import SocialLinks from "@/components/SocialLinks";
+import SystemBusyModal from "@/components/SystemBusyModal";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { getCityRule } from "@/lib/catalog";
 import { maybeResizeImage } from "@/lib/image-resize";
@@ -55,6 +56,7 @@ export default function HomePage() {
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [state, setState] = useState<State>({ kind: "idle" });
   const [promoOpen, setPromoOpen] = useState(false);
+  const [systemBusyOpen, setSystemBusyOpen] = useState(false);
   const promoEverShown = useRef(false);
   const turnstileSectionRef = useRef<HTMLDivElement>(null);
 
@@ -199,11 +201,19 @@ export default function HomePage() {
 
       if (!res.ok) {
         let msg = `辨識失敗（HTTP ${res.status}）`;
+        let code: string | null = null;
         try {
           const errData = await res.json();
+          if (errData?.error) code = String(errData.error);
           if (errData?.message) msg = String(errData.message);
           else if (errData?.error) msg = String(errData.error);
         } catch {}
+        // 速率限制 / quota：不是辨識錯誤，跳「系統錯誤」彈窗，自動 reload
+        if (code === "RATE_LIMIT" || res.status === 503) {
+          setState({ kind: "idle" });
+          setSystemBusyOpen(true);
+          return;
+        }
         setState({ kind: "error", message: msg });
         return;
       }
@@ -367,6 +377,8 @@ export default function HomePage() {
         open={promoOpen}
         onClose={() => setPromoOpen(false)}
       />
+
+      <SystemBusyModal open={systemBusyOpen} />
     </>
   );
 }

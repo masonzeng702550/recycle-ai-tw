@@ -140,10 +140,18 @@ export async function analyzeWithKey(
   } catch (err) {
     const msg = err instanceof Error ? err.message : "未知錯誤";
     if (/api[_ ]?key|401|403/i.test(msg)) {
-      return { status: "error", message: "組織 API Key 無效或無權限。" };
+      return {
+        status: "error",
+        message: "組織 API Key 無效或無權限。",
+        code: "INVALID_KEY",
+      };
     }
     if (/429|quota|rate/i.test(msg)) {
-      return { status: "error", message: "Gemini 已達上限或被限速。" };
+      return {
+        status: "error",
+        message: "Gemini 已達上限或被限速。",
+        code: "RATE_LIMIT",
+      };
     }
     return { status: "error", message: `辨識失敗：${msg}` };
   }

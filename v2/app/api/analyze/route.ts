@@ -86,6 +86,18 @@ export async function POST(req: NextRequest) {
     // Call Gemini（用轉好的 JPEG）
     const result = await analyzeWithKey(resolvedKey, [safe.blob]);
 
+    // 速率限制 / quota：不算辨識失敗。不寫 recognitions、不寫 error_reports、
+    // 不上傳 blob。回 503 讓前端跳「系統忙線中」彈窗後 reload，請使用者重試。
+    if (result.status === "error" && result.code === "RATE_LIMIT") {
+      return NextResponse.json(
+        {
+          error: "RATE_LIMIT",
+          message: "系統忙線中，請稍候再試。",
+        },
+        { status: 503 },
+      );
+    }
+
     // Persist to DB regardless of status
     const recognitionId = await insertRecognition({
       cityId,

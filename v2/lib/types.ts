@@ -71,6 +71,10 @@ export interface UncertainResult {
 export interface ErrorResult {
   status: "error";
   message: string;
+  // RATE_LIMIT  → Google 回 429/quota/rate，視為「系統忙線中」而非辨識失敗，
+  //               不寫 DB、不算進辨識率，前端會跳系統錯誤彈窗後 reload。
+  // INVALID_KEY → 401/403，組織 key 失效，要通知管理員。
+  code?: "RATE_LIMIT" | "INVALID_KEY";
 }
 
 export type AnalyzeResult = IdentifiedResult | UncertainResult | ErrorResult;
