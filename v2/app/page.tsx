@@ -58,6 +58,8 @@ export default function HomePage() {
   const [promoOpen, setPromoOpen] = useState(false);
   const [systemBusyOpen, setSystemBusyOpen] = useState(false);
   const promoEverShown = useRef(false);
+  // 自動辨識：同一組圖片只觸發一次，使用者改圖 / reset 後才允許再 fire
+  const lastAutoFireKey = useRef<string>("");
   const turnstileSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,6 +88,25 @@ export default function HomePage() {
     const t = setTimeout(() => setPromoOpen(true), 900);
     return () => clearTimeout(t);
   }, [state.kind]);
+
+  // 上傳完成 + 人機驗證完成 → 自動開始辨識，不必再按按鈕。
+  // 同一組 image id 只 fire 一次；改圖或 reset 才允許下一次。
+  // 缺驗證資訊時也照 fire — runAnalyze 內部會自動把 ApiKeyGate 打開，
+  // gate 儲存完成後它自己會再 trigger 一次 runAnalyze（帶 override）。
+  useEffect(() => {
+    if (state.kind !== "idle") return;
+    if (images.length === 0) return;
+    if (!turnstileToken) return; // 等 Turnstile 完成，token 變化會 re-fire
+    if (keyMode === "org" && orgError) return; // 組織代號錯誤就讓使用者去處理
+
+    const imageKey = images.map((i) => i.id).join(",");
+    if (lastAutoFireKey.current === imageKey) return;
+    lastAutoFireKey.current = imageKey;
+    void runAnalyze();
+    // runAnalyze 依賴會跟著一起變，但這個 effect 只關心觸發時機，所以
+    // 不把它放進 deps，避免無限 re-fire
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.kind, images, turnstileToken, keyMode, apiKey, orgCode, orgError]);
 
   async function validateOrg(code: string) {
     setOrgError(null);
@@ -243,16 +264,11 @@ export default function HomePage() {
     setImages([]);
     setState({ kind: "idle" });
     resetTurnstile();
+    lastAutoFireKey.current = "";
   }
 
   const cityName = getCityRule(cityId).cityName;
   const currentImageFile = images[0]?.file ?? null;
-
-  const analyzeDisabled =
-    images.length === 0 ||
-    state.kind === "analyzing" ||
-    !turnstileToken ||
-    (keyMode === "org" && (!!orgError || !orgCode));
 
   return (
     <>
@@ -301,28 +317,26 @@ export default function HomePage() {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                <button
-                  onClick={() => runAnalyze()}
-                  disabled={analyzeDisabled}
-                  className="flex-1 py-3.5 rounded-full bg-white text-black text-sm font-semibold disabled:opacity-30 active:scale-95 transition-all"
-                >
-                  {state.kind === "analyzing"
-                    ? "辨識中…"
-                    : !turnstileToken && images.length > 0
-                      ? "請先完成人機驗證"
-                      : "開始辨識"}
-                </button>
-                {images.length > 0 && (
+              {/* 上傳完成後自動辨識；不再需要按鈕。
+                  狀態指示 + 重新選擇按鈕並排，RWD 在窄螢幕會堆疊。 */}
+              {images.length > 0 && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <AutoAnalyzeStatus
+                    state={state}
+                    hasTurnstile={!!turnstileToken}
+                    keyMode={keyMode}
+                    orgError={orgError}
+                    orgCode={orgCode}
+                  />
                   <button
                     onClick={reset}
                     disabled={state.kind === "analyzing"}
-                    className="sm:w-32 py-3.5 rounded-full border border-neutral-800 text-sm text-neutral-400 hover:bg-neutral-900"
+                    className="sm:w-32 py-3 rounded-full border border-neutral-800 text-sm text-neutral-400 hover:bg-neutral-900 disabled:opacity-40 shrink-0"
                   >
                     重新選擇
                   </button>
-                )}
-              </div>
+                </div>
+              )}
 
               <p className="text-xs text-neutral-600 leading-relaxed">
                 圖片只在這次辨識時送往伺服器，不會永久保留；自帶 API Key 時你的 Key 不會被記錄。錯誤回報的照片會永久保留供改善資料庫。
@@ -383,6 +397,59 @@ export default function HomePage() {
   );
 }
 
+function AutoAnalyzeStatus({
+  state,
+  hasTurnstile,
+  keyMode,
+  orgError,
+  orgCode,
+}: {
+  state: State;
+  hasTurnstile: boolean;
+  keyMode: KeyMode;
+  orgError: string | null;
+  orgCode: string;
+}) {
+  // 計算當下要顯示的訊息
+  let label: string;
+  let tone: "neutral" | "busy" | "warn";
+  if (state.kind === "analyzing") {
+    label = "辨識中…";
+    tone = "busy";
+  } else if (keyMode === "org" && (orgError || !orgCode)) {
+    label = orgError ?? "請至設定輸入組織代號";
+    tone = "warn";
+  } else if (!hasTurnstile) {
+    label = "請完成下方人機驗證，驗證完成會自動辨識";
+    tone = "warn";
+  } else {
+    // 通常一瞬間就跳到 analyzing；保留 fallback 避免空白
+    label = "準備辨識…";
+    tone = "busy";
+  }
+
+  const toneCls =
+    tone === "busy"
+      ? "bg-neutral-900 border-neutral-800 text-neutral-200"
+      : tone === "warn"
+        ? "bg-amber-950/30 border-amber-900/40 text-amber-200"
+        : "bg-neutral-900 border-neutral-800 text-neutral-400";
+
+  return (
+    <div
+      className={`flex-1 inline-flex items-center gap-2 px-4 py-3 rounded-full border text-sm ${toneCls}`}
+      aria-live="polite"
+    >
+      {tone === "busy" ? (
+        <span className="w-3 h-3 rounded-full border-2 border-neutral-600 border-t-neutral-200 animate-spin shrink-0" />
+      ) : (
+        <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+      )}
+      <span className="truncate">{label}</span>
+    </div>
+  );
+}
+
 function SourcePill({
   keyMode,
   orgName,
@@ -424,7 +491,7 @@ function IdleAside() {
       <p className="font-serif text-base text-neutral-300">怎麼用？</p>
       <ol className="space-y-1.5 text-xs">
         <li>1. 點左邊「+」拍照或選擇 1 張圖片</li>
-        <li>2. 完成人機驗證（Cloudflare Turnstile）</li>
+        <li>2. 完成人機驗證（Cloudflare Turnstile）後自動開始辨識</li>
         <li>3. 看到結果會包含當地處理方式、應投入的桶</li>
         <li>4. AI 不確定時會請你換個角度再拍一張</li>
       </ol>
