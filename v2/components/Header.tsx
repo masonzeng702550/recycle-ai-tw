@@ -22,7 +22,13 @@ export default function Header({ cityId, onCityChange }: HeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 bg-black/80 backdrop-blur border-b border-neutral-900">
+    <header
+      className="sticky top-0 z-30 bg-black/80 backdrop-blur border-b border-neutral-900"
+      // iOS PWA standalone：viewport-fit=cover 之後 Dynamic Island / 瀏海會蓋在
+      // 內容上面，所以把 sticky header 整體往下推一個 safe-area-inset-top。
+      // 一般瀏覽器與桌機上這個值是 0，不會有副作用。
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <span className="font-serif font-extrabold text-xl sm:text-2xl leading-none">

@@ -39,7 +39,11 @@ export default function AdminNav() {
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 md:h-dvh md:sticky md:top-0 border-r border-neutral-900 bg-neutral-950">
-        <div className="px-5 py-5 border-b border-neutral-900">
+        <div
+          className="px-5 py-5 border-b border-neutral-900"
+          // iPad PWA：避開頂端狀態列
+          style={{ paddingTop: "calc(1.25rem + env(safe-area-inset-top))" }}
+        >
           <Link href="/admin" className="font-serif font-extrabold text-2xl leading-none">
             <span style={{ color: "#00a96f" }}>T</span>
             rash
@@ -80,7 +84,11 @@ export default function AdminNav() {
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden sticky top-0 z-30 bg-black/90 backdrop-blur border-b border-neutral-900">
+      <div
+        className="md:hidden sticky top-0 z-30 bg-black/90 backdrop-blur border-b border-neutral-900"
+        // 同 Header：避開 iOS PWA Dynamic Island
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         <div className="px-4 h-14 flex items-center justify-between">
           <Link href="/admin" className="font-serif font-extrabold text-xl">
             <span style={{ color: "#00a96f" }}>T</span>

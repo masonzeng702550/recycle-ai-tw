@@ -33,7 +33,16 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-TW" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
+      <body
+        className="min-h-full flex flex-col"
+        // 全站留 iOS PWA 安全區（home indicator / 鏡頭橫向 inset）。
+        // 頂端 inset 由各 sticky header 自己加，避免雙重 padding。
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingLeft: "env(safe-area-inset-left)",
+          paddingRight: "env(safe-area-inset-right)",
+        }}
+      >
         {children}
         <ServiceWorkerRegister />
       </body>
