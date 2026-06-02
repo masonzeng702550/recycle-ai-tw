@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import PWASplash from "@/components/PWASplash";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
         }}
       >
         {children}
+        <PWASplash />
         <ServiceWorkerRegister />
       </body>
     </html>

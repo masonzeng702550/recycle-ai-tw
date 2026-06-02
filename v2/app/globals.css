@@ -41,3 +41,25 @@ details summary::-webkit-details-marker {
   background: #2a2a2a;
   border-radius: 2px;
 }
+
+/* ─── PWA 啟動過場動畫 ─────────────────────────────────────
+   只在 standalone 模式打開時播一次（PWASplash 元件控制觸發）。
+   Logo 進場：fade + 微縮放 + 從下往上
+   副標進場：稍晚一點淡入
+   外層退場：opacity 由 .pwa-splash--fading toggle，transition 由 Tailwind 處理
+*/
+@keyframes pwa-splash-logo-in {
+  0% { opacity: 0; transform: scale(0.88) translateY(12px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes pwa-splash-sub-in {
+  0% { opacity: 0; transform: translateY(6px); }
+  60% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.pwa-splash-logo {
+  animation: pwa-splash-logo-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.pwa-splash-sub {
+  animation: pwa-splash-sub-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
