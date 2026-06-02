@@ -73,18 +73,6 @@ html.pwa-splash-active #pwa-splash {
 html.pwa-splash-active.pwa-splash-fading #pwa-splash {
   opacity: 0;
 }
-@keyframes pwa-splash-logo-in {
-  0% { opacity: 0; transform: scale(0.88) translateY(12px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-@keyframes pwa-splash-sub-in {
-  0% { opacity: 0; transform: translateY(6px); }
-  60% { opacity: 0; transform: translateY(6px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-html.pwa-splash-active .pwa-splash-logo {
-  animation: pwa-splash-logo-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-html.pwa-splash-active .pwa-splash-sub {
-  animation: pwa-splash-sub-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+/* 進場動畫故意省掉：iOS 已經先用 apple-touch-startup-image 顯示同樣
+   構圖的靜態啟動圖，webview 接手時 logo 應該無縫銜接在 rest 位置，
+   再彈一次反而會看到「閃動」。退場時整個 overlay opacity 1→0 就好。 */
