@@ -8,6 +8,7 @@ import ApiKeyGate from "@/components/ApiKeyGate";
 import FirstSuccessPromo from "@/components/FirstSuccessPromo";
 import InstallAppButton from "@/components/InstallAppButton";
 import ResultCard from "@/components/ResultCard";
+import EcoFactsTicker from "@/components/EcoFactsTicker";
 import SocialLinks from "@/components/SocialLinks";
 import SystemBusyModal from "@/components/SystemBusyModal";
 import TurnstileWidget from "@/components/TurnstileWidget";
@@ -582,12 +583,13 @@ function IdleAside() {
 
 function AnalyzingAside() {
   return (
-    <div className="flex flex-col items-center gap-5 py-16 rounded-3xl bg-neutral-900/50 border border-neutral-800">
+    <div className="flex flex-col items-center gap-5 py-12 px-5 rounded-3xl bg-neutral-900/50 border border-neutral-800">
       <div className="w-12 h-12 rounded-full border-2 border-neutral-700 border-t-neutral-300 animate-spin" />
       <div className="text-center space-y-1">
         <p className="font-serif text-lg text-neutral-200">AI 正在分析圖片</p>
-        <p className="text-xs text-neutral-600">通常需要 5–10 秒</p>
+        <p className="text-xs text-neutral-600">通常需要 5–10 秒，先來點冷知識 👇</p>
       </div>
+      <EcoFactsTicker />
     </div>
   );
 }

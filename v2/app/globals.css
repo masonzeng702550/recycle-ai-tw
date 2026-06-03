@@ -32,6 +32,18 @@ details summary::-webkit-details-marker {
   display: none;
 }
 
+/* 環保冷知識輪播淡入 */
+@keyframes ecoFactIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.eco-fact-enter {
+  animation: ecoFactIn 360ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eco-fact-enter { animation: none; }
+}
+
 /* 自訂 scrollbar：手機 chip 列、catalog 列表 */
 .scroll-thin::-webkit-scrollbar {
   height: 4px;
