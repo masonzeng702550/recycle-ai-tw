@@ -75,15 +75,15 @@ export default function ResultCard({
             {item.emoji ?? GROUP_EMOJI[result.group]}
           </span>
           <div className="min-w-0">
-            <h2 className="font-serif text-lg sm:text-xl font-bold text-neutral-50 truncate">
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-neutral-50 truncate">
               {result.itemName}
             </h2>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className={`text-xs ${CONF_COLOR[result.confidence]}`}>
+              <span className={`text-sm ${CONF_COLOR[result.confidence]}`}>
                 {CONF_LABEL[result.confidence]}
               </span>
               <span className="text-neutral-700">·</span>
-              <span className="text-xs text-neutral-400">
+              <span className="text-sm text-neutral-300">
                 {GROUP_LABELS[result.group]}
               </span>
               {composite && (
@@ -117,27 +117,29 @@ export default function ResultCard({
         ) : (
           <>
             <section className="space-y-2">
-              <h3 className="font-serif text-xs font-semibold text-neutral-500 uppercase tracking-widest">
+              <h3 className="font-serif text-sm font-semibold text-neutral-400 tracking-wide">
                 {cityName}處理方式
               </h3>
-              <p className="text-sm sm:text-base text-neutral-200 leading-relaxed">
+              <p className="text-base sm:text-lg text-neutral-100 leading-relaxed">
                 {rule.disposal}
               </p>
             </section>
 
             {rule.binColor && (
-              <div className="flex items-center gap-2 text-sm text-neutral-400 bg-neutral-800 rounded-xl px-4 py-3">
-                <span>🗑️</span>
+              <div className="flex items-center gap-2 text-base text-neutral-300 bg-neutral-800 rounded-xl px-4 py-3">
+                <span className="text-xl">🗑️</span>
                 <span>
                   投入：
-                  <strong className="text-neutral-100">{rule.binColor}</strong>
+                  <strong className="text-lg text-neutral-50">
+                    {rule.binColor}
+                  </strong>
                 </span>
               </div>
             )}
 
             {rule.schedule && (
-              <div className="flex items-center gap-2 text-sm text-neutral-400 bg-neutral-800 rounded-xl px-4 py-3">
-                <span>🕒</span>
+              <div className="flex items-center gap-2 text-base text-neutral-300 bg-neutral-800 rounded-xl px-4 py-3">
+                <span className="text-xl">🕒</span>
                 <span>{rule.schedule}</span>
               </div>
             )}
@@ -147,7 +149,7 @@ export default function ResultCard({
         )}
 
         <section className="space-y-2">
-          <h3 className="font-serif text-xs font-semibold text-neutral-500 uppercase tracking-widest">
+          <h3 className="font-serif text-sm font-semibold text-neutral-400 tracking-wide">
             判斷說明
           </h3>
           <p className="text-sm text-neutral-400 leading-relaxed">
@@ -157,13 +159,13 @@ export default function ResultCard({
 
         {tips.length > 0 && (
           <section className="space-y-2">
-            <h3 className="font-serif text-xs font-semibold text-neutral-500 uppercase tracking-widest">
+            <h3 className="font-serif text-sm font-semibold text-neutral-400 tracking-wide">
               注意事項
             </h3>
             <ul className="space-y-1.5">
               {tips.map((tip, i) => (
-                <li key={i} className="text-sm text-neutral-400 flex gap-2">
-                  <span className="text-neutral-700 shrink-0">·</span>
+                <li key={i} className="text-base text-neutral-300 flex gap-2 leading-relaxed">
+                  <span className="text-neutral-600 shrink-0">·</span>
                   {tip}
                 </li>
               ))}

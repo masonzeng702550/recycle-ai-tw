@@ -343,7 +343,7 @@ export default function HomePage() {
               )}
 
               <p className="text-xs text-neutral-600 leading-relaxed">
-                圖片只在這次辨識時送往伺服器，不會永久保留；自帶 API Key 時你的 Key 不會被記錄。錯誤回報的照片會永久保留供改善資料庫。
+                📸 圖片僅用於本次辨識、不會保留；你的 API Key 不會被記錄。
               </p>
             </section>
 
@@ -491,16 +491,16 @@ function SourcePill({
 
 function IdleAside() {
   return (
-    <div className="rounded-3xl bg-neutral-900/50 border border-dashed border-neutral-800 p-6 text-sm text-neutral-500 leading-relaxed space-y-3">
-      <p className="font-serif text-base text-neutral-300">怎麼用？</p>
-      <ol className="space-y-1.5 text-xs">
+    <div className="rounded-3xl bg-neutral-900/50 border border-dashed border-neutral-800 p-6 text-sm text-neutral-400 leading-relaxed space-y-3">
+      <p className="font-serif text-lg text-neutral-200">怎麼用？</p>
+      <ol className="space-y-2 text-sm">
         <li>1. 點左邊「+」拍照或選擇 1 張圖片</li>
-        <li>2. 完成人機驗證（Cloudflare Turnstile）後自動開始辨識</li>
-        <li>3. 看到結果會包含當地處理方式、應投入的桶</li>
-        <li>4. AI 不確定時會請你換個角度再拍一張</li>
+        <li>2. 完成人機驗證後自動開始辨識</li>
+        <li>3. 結果會顯示當地處理方式與應投入的桶</li>
+        <li>4. AI 不確定時，換個角度再拍一張</li>
       </ol>
-      <p className="text-[11px] text-neutral-600 pt-2">
-        如要直接查資料庫，請至上方「資料庫」分頁。
+      <p className="text-xs text-neutral-600 pt-2">
+        想直接查詢，可點上方「資料庫」。
       </p>
     </div>
   );
