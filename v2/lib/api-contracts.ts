@@ -3,6 +3,7 @@
 import type {
   AdminStats,
   AnalyzeResult,
+  EcoFact,
   ErrorReportRecord,
   OrgPublicInfo,
   RecognitionRecord,
@@ -92,5 +93,29 @@ export interface AdminCreateOrgRequest {
 export interface AdminUpdateOrgRequest {
   name?: string;
   apiKey?: string;
+  active?: boolean;
+}
+
+// ───── 環保冷知識 ───────────────────────────────────────
+
+// GET /api/eco-facts?count=N  （公開，辨識中畫面用）
+//   resp: { facts: string[] }  隨機 N 筆啟用中的冷知識
+export interface EcoFactsResponse {
+  facts: string[];
+}
+
+// GET /api/admin/eco-facts
+export interface AdminEcoFactsResponse {
+  facts: EcoFact[];
+}
+
+// POST /api/admin/eco-facts
+export interface AdminCreateEcoFactRequest {
+  content: string;
+}
+
+// PATCH /api/admin/eco-facts/:id
+export interface AdminUpdateEcoFactRequest {
+  content?: string;
   active?: boolean;
 }

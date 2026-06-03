@@ -4,6 +4,7 @@ import "server-only";
 import { sql } from "@vercel/postgres";
 import type {
   AdminStats,
+  EcoFact,
   ErrorReportRecord,
   ErrorReportSource,
   KeyMode,
@@ -200,6 +201,62 @@ export async function updateOrganization(
 
 export async function deleteOrganization(id: number): Promise<void> {
   await sql`DELETE FROM organizations WHERE id = ${id}`;
+}
+
+// ─── eco_facts（環保冷知識）─────────────────────────────────
+
+// 隨機取 n 筆「啟用中」的冷知識內容，供辨識中畫面播放。
+export async function getRandomActiveEcoFacts(n: number): Promise<string[]> {
+  const count = Math.max(1, Math.min(n, 5));
+  const { rows } = await sql<{ content: string }>`
+    SELECT content FROM eco_facts
+    WHERE active = TRUE
+    ORDER BY RANDOM()
+    LIMIT ${count}
+  `;
+  return rows.map((r) => r.content);
+}
+
+function rowToEcoFact(r: Record<string, unknown>): EcoFact {
+  return {
+    id: r.id as number,
+    content: r.content as string,
+    active: r.active as boolean,
+    createdAt: (r.created_at as Date).toISOString(),
+  };
+}
+
+export async function listEcoFacts(): Promise<EcoFact[]> {
+  const { rows } = await sql`
+    SELECT id, content, active, created_at
+    FROM eco_facts
+    ORDER BY created_at DESC, id DESC
+  `;
+  return rows.map(rowToEcoFact);
+}
+
+export async function createEcoFact(content: string): Promise<number> {
+  const { rows } = await sql<{ id: number }>`
+    INSERT INTO eco_facts (content) VALUES (${content})
+    RETURNING id
+  `;
+  return rows[0].id;
+}
+
+export async function updateEcoFact(
+  id: number,
+  patch: { content?: string; active?: boolean },
+): Promise<void> {
+  if (patch.content !== undefined) {
+    await sql`UPDATE eco_facts SET content = ${patch.content}, updated_at = NOW() WHERE id = ${id}`;
+  }
+  if (patch.active !== undefined) {
+    await sql`UPDATE eco_facts SET active = ${patch.active}, updated_at = NOW() WHERE id = ${id}`;
+  }
+}
+
+export async function deleteEcoFact(id: number): Promise<void> {
+  await sql`DELETE FROM eco_facts WHERE id = ${id}`;
 }
 
 // ─── admin_settings ───────────────────────────────────────

@@ -130,6 +130,13 @@ export interface ErrorReportRecord {
   source: ErrorReportSource;
 }
 
+export interface EcoFact {
+  id: number;
+  content: string;
+  active: boolean;
+  createdAt: string;
+}
+
 export interface AdminStats {
   totalRecognitions: number;
   identifiedCount: number;

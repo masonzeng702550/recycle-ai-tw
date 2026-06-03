@@ -9,6 +9,7 @@ const NAV = [
   { href: "/admin/records", label: "辨識紀錄" },
   { href: "/admin/reports", label: "錯誤回報" },
   { href: "/admin/orgs", label: "組織代號" },
+  { href: "/admin/eco-facts", label: "環保冷知識" },
   { href: "/admin/change-password", label: "修改密碼" },
 ];
 

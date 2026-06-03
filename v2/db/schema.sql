@@ -55,6 +55,18 @@ CREATE TABLE IF NOT EXISTS organizations (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- 環保冷知識：辨識時隨機播放，admin 後台可增刪改。
+-- 種子資料由 scripts/init-db.ts 在「資料表為空時」匯入，不會覆蓋後台新增的內容。
+CREATE TABLE IF NOT EXISTS eco_facts (
+  id              SERIAL PRIMARY KEY,
+  content         TEXT NOT NULL,
+  active          BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_eco_facts_active ON eco_facts (active);
+
 -- 單列管理員設定（密碼可從 admin UI 修改）
 CREATE TABLE IF NOT EXISTS admin_settings (
   id              INT PRIMARY KEY DEFAULT 1,

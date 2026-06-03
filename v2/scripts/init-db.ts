@@ -25,6 +25,25 @@ async function main() {
   );
   await sql.query(sqlText);
   console.log("[init-db] ✓ schema applied");
+
+  // 環保冷知識種子：僅在資料表為空時匯入，避免覆蓋後台新增 / 重複種子。
+  const { rows } = await sql.query<{ count: number }>(
+    "SELECT COUNT(*)::int AS count FROM eco_facts",
+  );
+  const existing = Number(rows[0]?.count ?? 0);
+  if (existing === 0) {
+    const seedText = readFileSync(
+      join(process.cwd(), "db", "eco-facts-seed.json"),
+      "utf8",
+    );
+    const seed = JSON.parse(seedText) as string[];
+    // 一次性多列 INSERT，用 $1,$2,... 參數化避免 SQL injection。
+    const values = seed.map((_, i) => `($${i + 1})`).join(",");
+    await sql.query(`INSERT INTO eco_facts (content) VALUES ${values}`, seed);
+    console.log(`[init-db] ✓ seeded ${seed.length} eco facts`);
+  } else {
+    console.log(`[init-db] eco_facts already has ${existing} rows — skip seed`);
+  }
 }
 
 main().catch((err) => {
