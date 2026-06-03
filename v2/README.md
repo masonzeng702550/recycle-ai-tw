@@ -1,30 +1,93 @@
-# Trashform v2.1 — `recycle-ai-tw`
+# Trashform v2 — `recycle-ai-tw`
 
-> 「以 AI 影像辨識彌補民眾廢棄物分類認知落差——涵蓋日常回收與淨灘場域之在地化指引系統」公民行動 v2 網站。
+**中文** · [English](README.en.md)
 
-線上：<https://recycle-ai-tw.vercel.app>
-對應提案文件：[PRD](../PRD.md) · [SPEC](../SPEC.md)
+> 以 AI 影像辨識彌補民眾廢棄物分類認知落差 — 涵蓋日常回收與淨灘場域之在地化指引系統。臺北市數位實驗高中公民行動學期專題。
+
+🌐 線上：<https://recycle-ai-tw.vercel.app>
+📄 提案文件：[PRD](../PRD.md) · [SPEC](../SPEC.md)
+📷 操作截圖與影片：[../回收網頁操作/](../回收網頁操作/)
 
 ---
 
-## 功能
+## 目錄
+
+- [功能總覽](#功能總覽)
+- [架構](#架構)
+- [技術棧](#技術棧)
+- [本地開發](#本地開發)
+- [部署到 Vercel](#部署到-vercel)
+- [專案結構](#專案結構)
+- [資料庫綱要](#資料庫綱要)
+- [API 端點](#api-端點)
+- [維運腳本](#維運腳本)
+- [新增物品 / 縣市 / 環保冷知識](#新增物品--縣市--環保冷知識)
+- [安全注意事項](#安全注意事項)
+- [變更歷程](#變更歷程)
+
+---
+
+## 功能總覽
 
 ### 一般使用者
-- 拍照 / 上傳一張廢棄物照片 → Cloudflare Turnstile 人機驗證 → Gemini 影像辨識 → 顯示處理指引
-- **複合材質**（如手搖飲＝紙杯＋吸管＋封膜）自動拆解每個部件並分別給出處理方式
-- 結果含信心度（高 / 中 / 低）、所屬大類、投入桶色、備註、法規依據
-- 「回報分錯了」永久保留照片到後台供改善資料庫
-- 支援臺北市 / 高雄市兩套處理規則
-- 設定頁可選擇辨識來源：
-  - **自帶 API Key**（Gemini API Key 僅在當次請求送出，不入庫）
-  - **組織代號**（管理員配發；使用者不會看到實際 Key）
+
+#### 辨識流程
+- 拍照 / 選擇 1 張廢棄物照片
+- **自動辨識**：照片上傳完成 + Cloudflare Turnstile 驗證通過後**自動開始辨識**，不再需要按按鈕
+- **拍攝指引彈窗**：點擊拍攝前先顯示主體清晰、單一物品、光線充足等小技巧
+- **HEIC 自動轉檔**：iPhone 拍照的 HEIC / HEIF 在客戶端先轉成 JPEG，失敗 fallback 到 server 端再試一次
+- **客戶端縮圖**：超過 2560 px 自動降採樣，避開 Vercel serverless 的 4.5 MB body 上限
+- **辨識中的環保冷知識**：等待 5–10 秒的同時，隨機播放 1–3 則環保冷知識輪播
+
+#### 辨識結果
+- 結果以**彈出式視窗**呈現，重要文字（物品名稱、應投入桶色）加大，省略冗長說明
+- **複合材質拆解**：如「手搖飲杯 = 紙杯 + 吸管 + 封膜」，每個部件分別給出處理方式
+- 信心度（高 / 中 / 低）、所屬大類、投入桶色、備註、法規依據
+- **跨縣市差異顯示**：同一物品在臺北市與高雄市的不同處理方式並列對比
+- 「回報分錯了」永久保留照片到後台供資料庫改善
+- 支援臺北市 / 高雄市兩套處理規則，可在頁面右上即時切換
+
+#### 身份驗證模式
+彈出視窗讓使用者擇一：
+- **組織代號**（推薦）— 老師發放代號（例如 `t202605`），共用後端 Gemini Key，學生無需自備 API
+- **自己的 Gemini API Key** — 只存在瀏覽器 LocalStorage，從不上傳
+
+#### 使用者回頭率設計
+- **IG + 回饋表單按鈕**：常駐首頁
+- **首次辨識成功彈窗**：第一次出現 identified 結果時提示追蹤 IG / 留下回饋（每裝置只跳一次）
+- **加到手機桌面 (PWA)**：
+  - Android Chrome / Edge / Samsung：捕捉 `beforeinstallprompt`，按下直接彈原生安裝對話框
+  - iOS Safari：跳教學「分享 → 加入主畫面」（Safari 不允許程式觸發安裝）
+  - 已安裝（standalone）→ 按鈕不顯示
+  - 使用者按過「晚點再說」→ 7 天冷卻
+- **PWA 啟動過場動畫**：
+  - iOS：用 `apple-touch-startup-image` 顯示品牌啟動圖（13 種尺寸涵蓋全機型），消除「閃一下首頁」
+  - Android：Chrome 用 manifest 系統 splash
+  - WebView 接手後 in-page splash 淡出
+- **使用教學頁**：根據裝置自動切換手機 / 桌機版的影片與截圖
+- **頂端 nav 避開 Dynamic Island**：用 `env(safe-area-inset-top)` 留出瀏海空間
+
+#### 系統健壯性
+- **速率限制 ≠ 辨識失敗**：Gemini 回 429 / quota 時不寫資料庫、不污染統計，前端跳「系統錯誤」彈窗 5 秒倒數後自動 reload
+- **彩蛋**：API Key 欄位輸入 `67676767` 會播放音效
 
 ### 管理員（`/admin`）
-- 儀表板：4 個 KPI + 物品大類分布柱狀圖 + 近 30 日辨識量折線圖，30 秒自動刷新
-- 辨識紀錄：所有 recognition 文字記錄，分頁
-- 異動回報：使用者「分錯了」的人工回報 + AI 不確定/失敗的自動歸檔，照片永久保留
-- 組織代號管理：建立 / 編輯 / 啟停用 / 刪除（API Key 加密存 DB，從不回吐到前端）
-- 修改密碼
+
+- **儀表板**：4 個 KPI（總辨識數、識別率、不確定數、錯誤回報數）+ 物品大類分布柱狀圖 + 近 30 日辨識量折線圖
+- **辨識紀錄**：所有 recognition 文字記錄，分頁
+- **異動回報**：
+  - 使用者主動「分錯了」回報（manual）
+  - AI 不確定（auto_uncertain）自動歸檔
+  - AI 失敗（auto_error）自動歸檔
+  - 所有圖片永久保留於 Vercel Blob（private）
+- **組織代號管理**：建立 / 編輯 / 啟停用 / 刪除（API Key 加密存 DB，從不回吐到前端）
+- **環保冷知識管理**：CRUD 環保冷知識資料庫（前端辨識中畫面隨機播放）
+- **速率限制紀錄清理**：一鍵刪除所有「Gemini 已達上限」自動歸檔的污染資料
+- **修改密碼**
+
+### 圖片儲存最佳化
+- 上傳到 Blob 前用 **sharp 壓縮**（max 1600 px、JPEG mozjpeg q75）
+- 既有圖片可用 `scripts/compress-existing-blobs.ts` 一次性遷移壓縮（實測 14.58 MB → 1.42 MB，省 90%）
 
 ---
 
@@ -37,23 +100,26 @@
                                │ token
    ┌───────────┐  POST FormData  ┌──────────────────────────┐
    │  Browser  │ ──────────────▶ │   Next.js (Vercel)       │
-   │           │                 │  /api/analyze            │
-   └─────▲─────┘                 │   ─ verify Turnstile      │
-         │ JSON                  │   ─ resolve key           │
-         │                       │     (own / org → DB)      │
-         │                       │   ─ call Gemini           │
-         │                       │   ─ insert recognition    │
-         │                       │   ─ if uncertain/error:   │
-         │                       │       upload Blob +       │
-         │                       │       insert error_report │
-         │                       └────┬─────────────┬────────┘
+   │  (PWA)    │                 │  /api/analyze            │
+   │           │                 │   ─ verify Turnstile     │
+   │           │ ◀──── JSON ──── │   ─ resolve key:         │
+   └─────▲─────┘                 │       own → from req     │
+         │                       │       org → DB lookup    │
+         │ /api/eco-facts        │   ─ HEIC fallback        │
+         │ /api/orgs/validate    │   ─ call Gemini          │
+         │ /api/report-error     │   ─ insert recognition   │
+         │                       │   ─ if uncertain/error:  │
+         │                       │       sharp compress +   │
+         │                       │       upload Blob +      │
+         │                       │       insert error_report│
+         │                       └────┬─────────────┬───────┘
                                       │             │
                             Gemini API│             │ Postgres / Blob
                                       ▼             ▼
                               Google AI         Vercel Storage
 ```
 
-- **Postgres** 存：`recognition_records`、`error_reports`、`organizations`、`admin_settings`
+- **Postgres** 存：`recognition_records`、`error_reports`、`organizations`、`admin_settings`、`eco_facts`
 - **Blob (private)** 永久保留錯誤回報照片
 - 管理員看圖走 `/api/admin/blob-proxy?p=…`，token 不曝露給瀏覽器
 
@@ -68,9 +134,11 @@
 | AI | `@google/generative-ai`（Gemini 2.5 Flash） |
 | DB | `@vercel/postgres`（Neon） |
 | Object storage | `@vercel/blob` v2（private） |
+| Image processing | `sharp`（壓縮）、`heic-convert`（server HEIC fallback）、`heic2any`（client HEIC） |
 | Auth | `jose` JWT cookie + `bcryptjs` |
 | Bot check | Cloudflare Turnstile |
 | Charts | `recharts` |
+| PWA | 自製 `app/manifest.ts` + `public/sw.js` + 動態生成 apple-touch-startup-image |
 | Hosting | Vercel（Root Directory = `v2`） |
 
 ---
@@ -127,59 +195,92 @@ npm run lint
    Cloudflare Turnstile：<https://dash.cloudflare.com/?to=/:account/turnstile>，Domain 填部署網址。
 5. **Push to main** → 自動部署，build 步驟會自動套用 schema
 6. **首次登入** `/admin/login`，**馬上去「修改密碼」改掉初始密碼**（之後 `ADMIN_PASSWORD` 可從 env 移除）
+7. **環保冷知識初始化**：第一次需要在 admin 後台從 `db/eco-facts-seed.json` 匯入種子資料
 
 ---
 
-## 結構
+## 專案結構
 
 ```
 v2/
 ├ app/
-│  ├ page.tsx                    辨識主頁（Turnstile + /api/analyze）
+│  ├ page.tsx                    辨識主頁（自動辨識 + Turnstile + /api/analyze）
 │  ├ catalog/page.tsx            手動搜尋資料庫
 │  ├ settings/page.tsx           API Key / 組織代號 / 縣市
+│  ├ tutorial/page.tsx           使用教學（裝置自動切換手機 / 桌機版媒體）
+│  ├ layout.tsx                  Metadata + PWA splash inline script + safe-area
+│  ├ manifest.ts                 PWA manifest (Next metadata route)
 │  ├ admin/
 │  │  ├ login/                   不套用 (authed) layout
 │  │  └ (authed)/                JWT cookie 才能進
-│  │     ├ layout.tsx            sidebar 導覽
-│  │     ├ page.tsx              儀表板
+│  │     ├ layout.tsx            sidebar 導覽（safe-area-inset-top）
+│  │     ├ page.tsx              儀表板（KPI + 圖表）
 │  │     ├ records/              辨識紀錄
-│  │     ├ reports/              異動回報（人工 + 自動）
+│  │     ├ reports/              異動回報（含速率限制清理按鈕）
 │  │     ├ orgs/                 組織代號管理
+│  │     ├ eco-facts/            環保冷知識管理
 │  │     └ change-password/
 │  └ api/
-│     ├ analyze/                 公開：辨識主端點
+│     ├ analyze/                 公開：辨識主端點（429 不寫 DB）
 │     ├ report-error/            公開：人工回報（必附圖）
 │     ├ orgs/validate/           公開：驗證組織代號（不回 key）
+│     ├ eco-facts/               公開：隨機抓 1–5 則環保冷知識
 │     └ admin/                   middleware 保護
 │        ├ login/  logout/  change-password/
 │        ├ records/  reports/  stats/
 │        ├ orgs/  orgs/[id]/
+│        ├ eco-facts/  eco-facts/[id]/
+│        ├ cleanup-rate-limit/   清掉「Gemini 已達上限」污染資料
 │        └ blob-proxy/           private Blob 照片 server-side proxy
 ├ components/
-│  ├ ImageUploader.tsx           限 1 張，FileList snapshot 修復
+│  ├ ImageUploader.tsx           單張、拍攝指引彈窗、FileList snapshot 修復
 │  ├ TurnstileWidget.tsx         Cloudflare Turnstile 包裝
-│  ├ ResultCard.tsx              結果卡（含複合材質拆解）
+│  ├ ResultCard.tsx              結果彈窗（含複合材質拆解 + 跨縣市差異）
 │  ├ ReportDialog.tsx            「分錯了」對話框
+│  ├ EcoFactsTicker.tsx          辨識中環保冷知識輪播
+│  ├ SocialLinks.tsx             IG / 回饋表單按鈕
+│  ├ FirstSuccessPromo.tsx       首次成功彈窗
+│  ├ InstallAppButton.tsx        加到手機桌面（Android beforeinstallprompt + iOS 教學）
+│  ├ ServiceWorkerRegister.tsx   /sw.js 註冊
+│  ├ SystemBusyModal.tsx         429 / RATE_LIMIT 彈窗 + 自動 reload
+│  ├ ApiKeyGate.tsx              組織代號 / 自帶 Key 雙選擇
 │  ├ admin/                      AdminNav / StatsCharts
 │  └ …
 ├ lib/
-│  ├ types.ts                    共用 type
+│  ├ types.ts                    共用 type（含 ErrorResult.code = "RATE_LIMIT" | "INVALID_KEY"）
 │  ├ catalog/
-│  │  ├ items.json               廢棄物項目（目前 60+，目標 101）
+│  │  ├ items.json               廢棄物項目（60+，目標 101）
 │  │  └ rules/{taipei,kaohsiung}.json
 │  ├ prompts.ts                  Gemini 提示詞（含複合材質範例）
-│  ├ gemini-server.ts            伺服器端 Gemini 呼叫
-│  ├ db.ts                       全部 SQL
+│  ├ gemini-server.ts            伺服器端 Gemini 呼叫（含 RATE_LIMIT 偵測）
+│  ├ db.ts                       全部 SQL（recognition / report / org / eco-facts）
 │  ├ blob.ts                     上傳到 private Blob
 │  ├ auth.ts                     JWT cookie + bcrypt
 │  ├ turnstile.ts                CF siteverify
-│  ├ image-resize.ts             客戶端縮圖避開 Vercel 4.5 MB body 上限
+│  ├ image-resize.ts             客戶端縮圖避開 4.5 MB body 上限
+│  ├ image-compress.ts           伺服器端 sharp 壓縮（1600 px、q75）
+│  ├ heic-server.ts              server HEIC → JPEG fallback
+│  ├ easter-egg.ts               67676767 音效彩蛋
+│  ├ social.ts                   IG / 回饋表單 URL 常數
 │  ├ storage.ts                  客戶端 localStorage 包裝
+│  ├ server-env.ts               集中讀環境變數
 │  └ api-contracts.ts            前後端共用 request/response 形狀
+├ public/
+│  ├ sw.js                       極簡 service worker（Chrome PWA 安裝必需）
+│  ├ icons/                      PWA icons + favicons
+│  └ icons/splash/               13 張 apple-touch-startup-image
 ├ middleware.ts                  保護 /admin/* 與 /api/admin/*
-├ db/schema.sql                  CREATE TABLE IF NOT EXISTS + 遷移
-└ scripts/init-db.ts             build 前自動跑 schema
+├ db/
+│  ├ schema.sql                  CREATE TABLE IF NOT EXISTS + 遷移
+│  └ eco-facts-seed.json         環保冷知識種子資料
+└ scripts/
+   ├ init-db.ts                  build 前自動跑 schema
+   ├ blob-stats.ts               列出 error-reports/ blob 總量
+   ├ compress-existing-blobs.ts  既有 blob 一次性壓縮
+   ├ cleanup-rate-limit-records.ts  本機版速率限制資料清理
+   ├ db-stats.ts                 Postgres 大小與表格列數
+   ├ generate-pwa-icons.ts       sharp 動態產生 7 種 PWA / favicon
+   └ generate-pwa-splash.ts      sharp 動態產生 13 張 iOS 啟動圖
 ```
 
 ---
@@ -193,13 +294,16 @@ recognition_records            -- 每次辨識的文字結果
   key_mode, org_code,            -- own/org 路由標記
   raw_response (jsonb)
 
-error_reports                  -- 人工 + 自動歸檔
+error_reports                  -- 人工 + 自動歸檔（速率限制不寫）
   id, created_at, recognition_id (FK), blob_url, blob_pathname,
   user_comment, reported_item_id, city_id,
   source                       -- manual / auto_uncertain / auto_error
 
 organizations                  -- 組織代號（API key 加密存）
   id, code, name, api_key, active, created_at, updated_at
+
+eco_facts                      -- 環保冷知識
+  id, content, active, created_at, updated_at
 
 admin_settings                 -- 單列：管理員密碼 hash
   id=1, password_hash, updated_at
@@ -212,15 +316,64 @@ admin_settings                 -- 單列：管理員密碼 hash
 
 ---
 
-## 新增物品 / 縣市規則
+## API 端點
+
+### 公開
+| 路徑 | 方法 | 用途 |
+|---|---|---|
+| `/api/analyze` | POST | 主辨識端點（FormData：image + cityId + turnstileToken + keyMode + apiKey?/orgCode?）|
+| `/api/report-error` | POST | 使用者「分錯了」回報，必附圖 |
+| `/api/orgs/validate` | POST | 驗證組織代號（只回 `{ok, name?}`，不回 key）|
+| `/api/eco-facts` | GET | 隨機抓 1–5 則環保冷知識 |
+| `/manifest.webmanifest` | GET | PWA manifest（由 `app/manifest.ts` 動態生成）|
+
+### 管理員（middleware JWT cookie）
+| 路徑 | 方法 | 用途 |
+|---|---|---|
+| `/api/admin/login` | POST | 帳密驗證、發 cookie |
+| `/api/admin/logout` | POST | 清 cookie |
+| `/api/admin/change-password` | POST | 變更密碼 |
+| `/api/admin/stats` | GET | 儀表板資料（60s server-memory cache）|
+| `/api/admin/records` | GET | 辨識紀錄分頁 |
+| `/api/admin/reports` | GET | 異動回報分頁 |
+| `/api/admin/orgs` | GET / POST | 組織列表、建立 |
+| `/api/admin/orgs/[id]` | PATCH / DELETE | 更新、刪除 |
+| `/api/admin/eco-facts` | GET / POST | 環保冷知識列表、建立 |
+| `/api/admin/eco-facts/[id]` | PATCH / DELETE | 更新、刪除 |
+| `/api/admin/cleanup-rate-limit` | POST | 清掉 429 自動歸檔污染資料 |
+| `/api/admin/blob-proxy?p=…` | GET | private Blob 圖片代抓（帶 token） |
+
+---
+
+## 維運腳本
+
+| 腳本 | 用途 | 何時跑 |
+|---|---|---|
+| `scripts/init-db.ts` | 套用 / 升級 schema | build 自動跑（`POSTGRES_URL` 缺時 no-op）|
+| `scripts/blob-stats.ts` | 列出 error-reports/ 總大小 + 副檔名分布 + Top 10 | 評估 blob 用量 |
+| `scripts/compress-existing-blobs.ts` | 用 sharp 把既有 blob 全部重壓縮（覆蓋同 pathname）| 第一次部署壓縮 / 偶爾優化 |
+| `scripts/cleanup-rate-limit-records.ts` | 本機版「清掉速率限制紀錄」（admin UI 同功能）| `POSTGRES_URL` 可達時使用 |
+| `scripts/db-stats.ts` | Postgres 容量與各表 row 數 | 評估 Neon 用量 |
+| `scripts/generate-pwa-icons.ts` | 從 SVG 模板渲染 7 張 PWA / favicon | logo 改了再跑 |
+| `scripts/generate-pwa-splash.ts` | 從 SVG 模板渲染 13 張 iOS apple-touch-startup-image | logo / splash 設計改了再跑 |
+
+執行方式：
+```bash
+cd v2
+vercel env pull .env.production.local
+npx tsx scripts/<name>.ts
+# 或：set -a && . ./.env.production.local && set +a && npx tsx scripts/<name>.ts
+```
+
+---
+
+## 新增物品 / 縣市 / 環保冷知識
 
 ### 新增物品
 編輯 [`lib/catalog/items.json`](lib/catalog/items.json)：
-
 ```json
 { "id": "kebab_case_id", "nameZh": "中文名", "aliases": ["別名"], "group": "paper", "emoji": "📦" }
 ```
-
 之後在 `lib/catalog/rules/{city}.json` 對應 city 加 `items.<id>` 區塊填本地處理方式（可省略，未填則 fallback 到 `groupDefaults`）。
 
 ### 新增縣市
@@ -228,6 +381,9 @@ admin_settings                 -- 單列：管理員密碼 hash
 2. `lib/types.ts` 的 `CityId` 加新值
 3. `components/CityPicker.tsx` 加選項
 4. `lib/catalog/index.ts` 註冊
+
+### 新增環保冷知識
+從 admin 後台 `/admin/eco-facts` 直接 CRUD，或匯入 `db/eco-facts-seed.json` 的內容。
 
 ---
 
@@ -237,18 +393,30 @@ admin_settings                 -- 單列：管理員密碼 hash
 - 組織 API Key 只存 server，前端永遠拿不到，`/api/orgs/validate` 也只回 `{ok, name?}`。
 - Blob 是 private store，admin 看圖必須帶 cookie 走 `/api/admin/blob-proxy`，外部無法直接拉到 URL。
 - `/api/admin/*` 與 `/admin/*` 由 [`middleware.ts`](middleware.ts) 統一以 JWT cookie 把關（login/logout 端點除外）。
+- Cloudflare Turnstile 驗證所有 `/api/analyze` 請求，擋掉爬蟲與 abuse。
+- 圖片壓縮在 server 完成，避免使用者裝置慢時上傳大檔。
+- 速率限制錯誤不寫 DB / blob，避免攻擊者用大量請求灌爆儲存空間。
 
 ---
 
 ## 變更歷程
 
-- **v2.0** 純前端，純 client-side Gemini，API Key 僅在 localStorage
-- **v2.1** 全端化：Postgres + Blob + Cloudflare Turnstile + 管理員後台 + 組織代號 + 異動回報自動歸檔 + 複合材質拆解 + 客戶端縮圖
+| 版本 | 重點 |
+|---|---|
+| **v2.0** | 純前端，純 client-side Gemini，API Key 僅在 localStorage |
+| **v2.1** | 全端化：Postgres + Blob + Cloudflare Turnstile + 管理員後台 + 組織代號 + 異動回報自動歸檔 + 複合材質拆解 + 客戶端縮圖 + HEIC fallback |
+| **v2.2**（此版本） | 自動辨識、結果彈窗、跨縣市差異、拍攝指引、PWA（含 iOS startup image / Dynamic Island safe-area / brand splash）、環保冷知識輪播、server 端圖片壓縮、速率限制錯誤分離、IG/回饋入口、67676767 彩蛋 |
+
+完整 commit 紀錄：`git log --oneline`
 
 ---
 
 ## 授權與致謝
 
-公民行動學期專題（臺北市數位實驗高中），分類規則僅供參考，**最終以各市環保局公告為準**。
+公民行動學期專題（**臺北市數位實驗高中**），分類規則僅供參考，**最終以各市環保局公告為準**。
 
-資料骨架參考：[回收大百科](https://recycle.rethinktw.org/)
+- 資料骨架參考：[回收大百科](https://recycle.rethinktw.org/)
+- AI：Google Gemini 2.5 Flash
+- 部署：Vercel + Neon + Cloudflare Turnstile
+
+聯絡：[Instagram @trashform.team](https://www.instagram.com/trashform.team/) · [回饋表單](https://docs.google.com/forms/d/e/1FAIpQLSdylVR5SBsWxbGog3OFcfuAkdk51W-N0sQd-vX8o3GhdStKxQ/viewform)
