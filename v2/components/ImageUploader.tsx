@@ -58,6 +58,7 @@ export default function ImageUploader({
   const canAddMore = images.length < max && !disabled;
 
   return (
+    <div className="space-y-3">
     <div
       className={`
         relative rounded-3xl overflow-hidden transition-colors
@@ -143,6 +144,36 @@ export default function ImageUploader({
           )}
         </div>
       )}
+    </div>
+
+      {/* 拍攝技巧：尚未選圖時顯示，引導使用者拍出好辨識的照片 */}
+      {images.length === 0 && <PhotoTips />}
+    </div>
+  );
+}
+
+const PHOTO_TIPS: { icon: string; text: string }[] = [
+  { icon: "🎯", text: "讓物品置中，佔畫面一半以上" },
+  { icon: "💡", text: "光線充足、避免反光與深色陰影" },
+  { icon: "📦", text: "一次只拍一個物品" },
+  { icon: "🫥", text: "背景越單純越好，移開雜物" },
+  { icon: "🔍", text: "對焦清楚、手不要晃" },
+];
+
+function PhotoTips() {
+  return (
+    <div className="rounded-2xl bg-neutral-900/60 border border-neutral-800 px-4 py-3">
+      <p className="text-sm font-semibold text-neutral-200 mb-2">
+        📷 拍攝技巧（拍清楚辨識更準）
+      </p>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+        {PHOTO_TIPS.map((t, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm text-neutral-300">
+            <span className="shrink-0">{t.icon}</span>
+            <span className="leading-snug">{t.text}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
