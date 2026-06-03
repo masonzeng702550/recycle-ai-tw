@@ -57,6 +57,7 @@ export default function HomePage() {
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [state, setState] = useState<State>({ kind: "idle" });
   const [promoOpen, setPromoOpen] = useState(false);
+  const [resultOpen, setResultOpen] = useState(false);
   const [systemBusyOpen, setSystemBusyOpen] = useState(false);
   const promoEverShown = useRef(false);
   // 自動辨識：同一組圖片只觸發一次，使用者改圖 / reset 後才允許再 fire
@@ -245,6 +246,7 @@ export default function HomePage() {
 
       if (result.status === "identified") {
         setState({ kind: "result", result, recognitionId });
+        setResultOpen(true);
       } else if (result.status === "uncertain") {
         setState({
           kind: "uncertain",
@@ -264,6 +266,7 @@ export default function HomePage() {
     images.forEach((i) => URL.revokeObjectURL(i.previewUrl));
     setImages([]);
     setState({ kind: "idle" });
+    setResultOpen(false);
     resetTurnstile();
     lastAutoFireKey.current = "";
   }
@@ -363,13 +366,10 @@ export default function HomePage() {
                 )}
 
                 {state.kind === "result" && (
-                  <ResultCard
-                    result={state.result}
-                    cityId={cityId}
-                    cityName={cityName}
+                  <ResultDoneAside
+                    itemName={state.result.itemName}
+                    onView={() => setResultOpen(true)}
                     onRetry={reset}
-                    recognitionId={state.recognitionId}
-                    imageFile={currentImageFile}
                   />
                 )}
 
@@ -397,7 +397,81 @@ export default function HomePage() {
       />
 
       <SystemBusyModal open={systemBusyOpen} />
+
+      {/* 辨識結果彈出式視窗 */}
+      {state.kind === "result" && resultOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          style={{ paddingTop: "calc(1rem + env(safe-area-inset-top))" }}
+          onClick={() => setResultOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="辨識結果"
+        >
+          <div
+            className="w-full max-w-lg my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end mb-2">
+              <button
+                type="button"
+                onClick={() => setResultOpen(false)}
+                className="w-9 h-9 rounded-full bg-neutral-800/90 text-neutral-200 text-xl leading-none hover:bg-neutral-700"
+                aria-label="關閉結果"
+              >
+                ×
+              </button>
+            </div>
+            <ResultCard
+              result={state.result}
+              cityId={cityId}
+              cityName={cityName}
+              onRetry={reset}
+              recognitionId={state.recognitionId}
+              imageFile={currentImageFile}
+            />
+          </div>
+        </div>
+      )}
     </>
+  );
+}
+
+function ResultDoneAside({
+  itemName,
+  onView,
+  onRetry,
+}: {
+  itemName: string;
+  onView: () => void;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="rounded-3xl bg-neutral-900 overflow-hidden">
+      <div className="p-5 sm:p-6 space-y-4">
+        <header className="flex items-center gap-3">
+          <span className="text-3xl">✅</span>
+          <div className="min-w-0">
+            <h2 className="font-serif text-lg font-bold">辨識完成</h2>
+            <p className="text-sm text-neutral-400 mt-0.5 truncate">
+              {itemName}
+            </p>
+          </div>
+        </header>
+        <button
+          onClick={onView}
+          className="w-full py-3 rounded-full bg-white text-black text-sm font-semibold"
+        >
+          查看處理方式
+        </button>
+        <button
+          onClick={onRetry}
+          className="w-full py-3 rounded-full border border-neutral-800 text-sm text-neutral-400 hover:bg-neutral-800"
+        >
+          重新辨識其他物品
+        </button>
+      </div>
+    </div>
   );
 }
 
