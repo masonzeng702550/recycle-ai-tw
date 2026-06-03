@@ -39,6 +39,34 @@ export function getCityRule(cityId: CityId): CityRule {
   return cityRules[cityId];
 }
 
+// 目前支援的所有縣市（依設定檔順序）
+export const CITY_IDS = Object.keys(cityRules) as CityId[];
+
+export interface CityDisposal {
+  cityId: CityId;
+  cityName: string;
+  rule: CityItemRule;
+  isItemSpecific: boolean;
+}
+
+// 取得同一物品在所有縣市的處理方式，供結果頁做「縣市差異」比較。
+export function getAllDisposals(item: Item): CityDisposal[] {
+  return CITY_IDS.map((cityId) => {
+    const { rule, isItemSpecific } = getDisposal(cityId, item);
+    return { cityId, cityName: cityRules[cityId].cityName, rule, isItemSpecific };
+  });
+}
+
+// 各縣市處理方式（disposal + 投入桶）是否真的有差異。
+// 全部相同時前端可省略比較區塊，避免誤導使用者「縣市沒差」。
+export function disposalsDiffer(item: Item): boolean {
+  const all = getAllDisposals(item);
+  if (all.length < 2) return false;
+  const key = (d: CityDisposal) => `${d.rule.disposal}|${d.rule.binColor ?? ""}`;
+  const first = key(all[0]);
+  return all.some((d) => key(d) !== first);
+}
+
 export function getDisposal(
   cityId: CityId,
   item: Item

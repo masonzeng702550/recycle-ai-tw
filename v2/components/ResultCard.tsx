@@ -1,11 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { GROUP_EMOJI, GROUP_LABELS, getDisposal, getItem } from "@/lib/catalog";
+import {
+  GROUP_EMOJI,
+  GROUP_LABELS,
+  getAllDisposals,
+  getDisposal,
+  getItem,
+  disposalsDiffer,
+} from "@/lib/catalog";
 import type {
   CityId,
   IdentifiedComponent,
   IdentifiedResult,
+  Item,
 } from "@/lib/types";
 import ReportDialog from "./ReportDialog";
 
@@ -133,6 +141,8 @@ export default function ResultCard({
                 <span>{rule.schedule}</span>
               </div>
             )}
+
+            <CityDifference item={item} cityId={cityId} />
           </>
         )}
 
@@ -197,6 +207,81 @@ export default function ResultCard({
         cityId={cityId}
       />
     </div>
+  );
+}
+
+// 各縣市處理方式比較。只在各縣市規則真的不同時展開，避免誤導「縣市沒差」。
+function CityDifference({ item, cityId }: { item: Item; cityId: CityId }) {
+  const [open, setOpen] = useState(false);
+  const all = getAllDisposals(item);
+  if (all.length < 2) return null;
+
+  const differ = disposalsDiffer(item);
+
+  if (!differ) {
+    return (
+      <p className="text-xs text-neutral-600">
+        此物品在 {all.map((d) => d.cityName).join("、")} 的處理方式相同。
+      </p>
+    );
+  }
+
+  return (
+    <section className="space-y-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 text-xs font-semibold text-amber-300"
+        aria-expanded={open}
+      >
+        <span className="text-sm">🆚</span>
+        <span>各縣市處理方式不同 — {open ? "收合" : "看其他縣市"}</span>
+        <span className={`transition-transform ${open ? "rotate-180" : ""}`}>
+          ⌄
+        </span>
+      </button>
+
+      {open && (
+        <ul className="space-y-2">
+          {all.map((d) => {
+            const current = d.cityId === cityId;
+            return (
+              <li
+                key={d.cityId}
+                className={`rounded-xl px-4 py-3 border ${
+                  current
+                    ? "bg-amber-950/30 border-amber-900/50"
+                    : "bg-neutral-950/60 border-neutral-800"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className={`text-sm font-semibold ${
+                      current ? "text-amber-200" : "text-neutral-200"
+                    }`}
+                  >
+                    {d.cityName}
+                  </span>
+                  {current && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-900/60 text-amber-200">
+                      目前縣市
+                    </span>
+                  )}
+                  {d.rule.binColor && (
+                    <span className="text-[11px] text-neutral-400">
+                      · {d.rule.binColor}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-neutral-300 leading-relaxed">
+                  {d.rule.disposal}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
 
