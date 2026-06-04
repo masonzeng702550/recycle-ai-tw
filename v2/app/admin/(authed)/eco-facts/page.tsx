@@ -37,6 +37,10 @@ export default function EcoFactsPage() {
   const [editBusy, setEditBusy] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
+  // Seed 10 環保地獄梗
+  const [seedBusy, setSeedBusy] = useState(false);
+  const [seedMsg, setSeedMsg] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -170,6 +174,46 @@ export default function EcoFactsPage() {
     }
   }
 
+  async function seedHellMemes() {
+    if (seedBusy) return;
+    if (
+      !confirm(
+        "灌入 10 則「環保地獄梗」（已附中文梗圖）。\n\n如果其中某些 content 在資料庫已存在，會把它們的 image_url 更新成新梗圖；否則新增一筆。重複按是安全的。",
+      )
+    )
+      return;
+    setSeedBusy(true);
+    setSeedMsg(null);
+    try {
+      const resp = await fetch("/api/admin/eco-facts/seed-memes", {
+        method: "POST",
+      });
+      if (!resp.ok) {
+        setSeedMsg(`灌入失敗 (${resp.status})`);
+        return;
+      }
+      const data = (await resp.json()) as {
+        ok: boolean;
+        total: number;
+        inserted: number;
+        updated: number;
+        errors?: string[];
+      };
+      const errPart =
+        data.errors && data.errors.length
+          ? `；錯誤 ${data.errors.length} 筆`
+          : "";
+      setSeedMsg(
+        `已處理 ${data.total} 則 — 新增 ${data.inserted}、更新 ${data.updated}${errPart}`,
+      );
+      await load();
+    } catch {
+      setSeedMsg("網路錯誤");
+    } finally {
+      setSeedBusy(false);
+    }
+  }
+
   async function deleteFact(fact: EcoFact) {
     if (!confirm(`確定要刪除這則冷知識？此動作無法復原。\n\n「${fact.content}」`)) {
       return;
@@ -202,14 +246,31 @@ export default function EcoFactsPage() {
             {activeCount} 則啟用中。可選擇性附上梗圖。
           </p>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium hover:bg-neutral-200"
-        >
-          新增冷知識
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={seedHellMemes}
+            disabled={seedBusy}
+            className="rounded-full border border-amber-900/60 bg-amber-950/30 text-amber-300 px-4 py-2 text-sm hover:bg-amber-950/60 disabled:opacity-40"
+            title="一鍵灌入 10 則環保地獄梗 + 中文梗圖"
+          >
+            {seedBusy ? "灌入中…" : "💀 灌入地獄梗 ×10"}
+          </button>
+          <button
+            type="button"
+            onClick={openCreate}
+            className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium hover:bg-neutral-200"
+          >
+            新增冷知識
+          </button>
+        </div>
       </div>
+
+      {seedMsg && (
+        <div className="text-sm text-emerald-300 bg-emerald-950/40 border border-emerald-900/60 rounded-2xl px-4 py-3">
+          ✅ {seedMsg}
+        </div>
+      )}
 
       {error && (
         <div className="text-sm text-red-400 bg-red-950/40 border border-red-900/60 rounded-2xl px-4 py-3">
