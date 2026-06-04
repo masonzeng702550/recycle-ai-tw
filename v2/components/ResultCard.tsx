@@ -9,6 +9,8 @@ import {
   getItem,
   disposalsDiffer,
 } from "@/lib/catalog";
+import { resultMessage } from "@/lib/share";
+import { renderResultStory } from "@/lib/story-image";
 import type {
   CityId,
   IdentifiedComponent,
@@ -16,6 +18,7 @@ import type {
   Item,
 } from "@/lib/types";
 import ReportDialog from "./ReportDialog";
+import ShareButtons from "./ShareButtons";
 
 interface Props {
   result: IdentifiedResult;
@@ -111,6 +114,31 @@ export default function ResultCard({
         ) : (
           <PrimaryDisposal cityName={cityName} rule={rule} group={result.group} />
         )}
+
+        {/* ─── 行動裝置分享按鈕（IG 限時動態 / LINE）─── */}
+        <ShareButtons
+          getStoryImage={() =>
+            renderResultStory({
+              itemEmoji: item.emoji ?? GROUP_EMOJI[result.group],
+              itemName: result.itemName,
+              groupLabel: GROUP_LABELS[result.group],
+              cityName,
+              disposal: rule.disposal,
+              binColor: rule.binColor ?? null,
+              composite: !!composite,
+            })
+          }
+          message={resultMessage({
+            itemName: result.itemName,
+            groupLabel: GROUP_LABELS[result.group],
+            cityName,
+            disposal: rule.disposal,
+            binColor: rule.binColor ?? null,
+            composite: !!composite,
+          })}
+          size="md"
+          label={`Trashform 辨識結果：${result.itemName}`}
+        />
 
         {/* ─── 次要區：全部收合 ─── */}
         <div className="space-y-2 pt-1">
