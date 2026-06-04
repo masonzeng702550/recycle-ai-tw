@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import {
   canShareFiles,
+  copyText,
+  IG_HANDLE,
   isShareCapable,
   shareImageFile,
   shareToLine,
@@ -33,6 +35,7 @@ export default function ShareButtons({
   const [supportsAny, setSupportsAny] = useState(false);
   const [igBusy, setIgBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [tip, setTip] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -49,14 +52,26 @@ export default function ShareButtons({
     if (igBusy) return;
     setIgBusy(true);
     setErr(null);
+    setTip(null);
     try {
       const file = await getStoryImage();
       if (!supportsFiles) {
         setErr("此瀏覽器不支援檔案分享，請改用 LINE。");
         return;
       }
+      // 先把網址寫進剪貼簿 — 使用者在 IG 加「連結貼紙」時直接貼上
+      const copied = await copyText(SITE_URL);
       const r = await shareImageFile(file, label);
-      if (r === "unsupported") setErr("分享 API 不可用");
+      if (r === "shared") {
+        setTip(
+          copied
+            ? `已複製網址 — 在 IG 限時動態加「連結貼紙」貼上，並標記 ${IG_HANDLE}`
+            : `分享好了。記得加「連結貼紙」貼上 ${SITE_URL}，並標記 ${IG_HANDLE}`,
+        );
+        window.setTimeout(() => setTip(null), 9000);
+      } else if (r === "unsupported") {
+        setErr("分享 API 不可用");
+      }
     } catch (e) {
       console.error("[share] IG story failed", e);
       setErr("分享失敗，請重試");
@@ -94,7 +109,14 @@ export default function ShareButtons({
         LINE
       </button>
       {err && (
-        <span className="text-[11px] text-rose-400 self-center">{err}</span>
+        <span className="text-[11px] text-rose-400 self-center w-full">
+          {err}
+        </span>
+      )}
+      {tip && (
+        <p className="w-full text-[11px] sm:text-xs text-emerald-300 leading-relaxed bg-emerald-950/30 border border-emerald-900/40 rounded-lg px-3 py-2">
+          ✅ {tip}
+        </p>
       )}
     </div>
   );

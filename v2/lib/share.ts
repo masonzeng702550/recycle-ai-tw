@@ -6,6 +6,21 @@
 
 export const SITE_URL = "https://recycle-ai-tw.vercel.app";
 export const IG_HANDLE = "@trashform.team";
+export const IG_URL = "https://www.instagram.com/trashform.team/";
+
+// 把網址寫到剪貼簿。Web Share 把圖丟去 IG 後，使用者只要在 IG 內按
+// 「連結貼紙」貼上就能附上可點連結。失敗時 return false，由呼叫端
+// 視情況顯示提示。
+export async function copyText(text: string): Promise<boolean> {
+  if (typeof navigator === "undefined") return false;
+  if (!navigator.clipboard?.writeText) return false;
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // 是否在「能用分享 API 的行動裝置」上。
 // 同時檢查 navigator.share + 觸控指標，避免桌機 Chrome 偽行動模式顯示。

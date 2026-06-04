@@ -139,29 +139,53 @@ function drawLines(
   return y + slice.length * lineHeight;
 }
 
+// Footer 預留高度（從 H 往上）
+const FOOTER_RESERVE = 320;
+
 function drawFooter(ctx: CanvasRenderingContext2D) {
   ctx.save();
   ctx.textAlign = "center";
 
-  // 兩條淡淡的分隔線
-  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  // 分隔線
+  ctx.strokeStyle = "rgba(255,255,255,0.08)";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(120, H - 220);
-  ctx.lineTo(W - 120, H - 220);
+  ctx.moveTo(120, H - FOOTER_RESERVE);
+  ctx.lineTo(W - 120, H - FOOTER_RESERVE);
   ctx.stroke();
 
+  // CTA
   ctx.fillStyle = TEXT;
-  ctx.font = `600 36px ${SANS}`;
-  ctx.fillText("用 AI 辨識廢棄物怎麼分類", W / 2, H - 180);
+  ctx.font = `700 36px ${SANS}`;
+  ctx.fillText("用 AI 辨識廢棄物怎麼分類", W / 2, H - 280);
+
+  // URL pill：白底圓角，視覺像個按鈕；網址用 mono 大字
+  const urlText = "recycle-ai-tw.vercel.app";
+  ctx.font = `700 30px ${MONO}`;
+  const urlW = ctx.measureText(urlText).width;
+  const pillH = 68;
+  const pillW = urlW + 64 + 56;
+  const pillX = (W - pillW) / 2;
+  const pillY = H - 210;
+  ctx.fillStyle = "#ffffff";
+  roundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
+  ctx.fill();
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#0a0a0a";
+  ctx.font = `400 32px ${SANS}`;
+  ctx.fillText("🔗", pillX + 24, pillY + 16);
+  ctx.font = `700 30px ${MONO}`;
+  ctx.fillText(urlText, pillX + 72, pillY + 18);
+  ctx.textAlign = "center";
+
+  // IG 標記 — 橘色凸顯，使用者更容易記住
+  ctx.fillStyle = ORANGE;
+  ctx.font = `800 36px ${SANS}`;
+  ctx.fillText("@trashform.team", W / 2, H - 108);
 
   ctx.fillStyle = MUTED;
-  ctx.font = `500 28px ${MONO}`;
-  ctx.fillText("recycle-ai-tw.vercel.app", W / 2, H - 110);
-
-  ctx.fillStyle = MUTED;
-  ctx.font = `500 24px ${SANS}`;
-  ctx.fillText("追蹤 @trashform.team", W / 2, H - 62);
+  ctx.font = `500 22px ${SANS}`;
+  ctx.fillText("追蹤我們，看更多回收 / 環保資訊", W / 2, H - 58);
   ctx.restore();
 }
 
@@ -208,14 +232,23 @@ export async function renderEcoFactStory(fact: string): Promise<File> {
   ctx.save();
   ctx.textAlign = "left";
   ctx.fillStyle = TEXT;
-  ctx.font = `500 60px ${SANS}`;
+  ctx.font = `500 58px ${SANS}`;
   const maxWidth = W - 240;
-  const lines = wrapText(ctx, fact, maxWidth);
-  const lineHeight = 92;
-  // 量測整段高度然後置中
+  // 限制最多 8 行，極長句末尾加 …，避免侵入 footer
+  const lineHeight = 88;
+  const wrapped = wrapText(ctx, fact, maxWidth);
+  const MAX_LINES = 8;
+  const lines =
+    wrapped.length <= MAX_LINES
+      ? wrapped
+      : [...wrapped.slice(0, MAX_LINES - 1), `${wrapped[MAX_LINES - 1]}…`];
+
   const blockHeight = lines.length * lineHeight;
-  const startY = Math.max(720, (H - blockHeight) / 2 - 100);
-  // 改成中央對齊：每行各自量測再算 x
+  // 居中但保證不會碰到 footer
+  const maxBottom = H - FOOTER_RESERVE - 60;
+  const idealStart = Math.max(680, (H - blockHeight) / 2 - 120);
+  const startY = Math.min(idealStart, maxBottom - blockHeight);
+
   for (let i = 0; i < lines.length; i++) {
     const w = ctx.measureText(lines[i]).width;
     ctx.fillText(lines[i], (W - w) / 2, startY + i * lineHeight);
@@ -225,18 +258,11 @@ export async function renderEcoFactStory(fact: string): Promise<File> {
   // 引用線（左側細條）
   ctx.save();
   ctx.fillStyle = GREEN;
-  ctx.fillRect(120, startYRef(lines.length, lineHeight), 6, blockHeightRef(lines.length, lineHeight));
+  ctx.fillRect(120, startY, 6, blockHeight);
   ctx.restore();
 
   drawFooter(ctx);
   return exportAsFile(canvas, "trashform-eco-fact.png");
-
-  function startYRef(n: number, lh: number) {
-    return Math.max(720, (H - n * lh) / 2 - 100);
-  }
-  function blockHeightRef(n: number, lh: number) {
-    return n * lh;
-  }
 }
 
 // ─── 辨識結果限時動態 ───────────────────────────────────
@@ -299,25 +325,30 @@ export async function renderResultStory(r: ResultStoryInput): Promise<File> {
   ctx.restore();
 
   // ─── 處理方式面板 ──────────────────
-  const panelTop = Math.max(afterName + 110, 1150);
+  // 上邊界：跟在 group chip 後面、但別貼太緊；
+  // 下邊界：不可侵入 footer 區（H - FOOTER_RESERVE - 40 留 40px 緩衝）
   const panelLeft = 90;
   const panelRight = W - 90;
   const panelWidth = panelRight - panelLeft;
-  const panelInner = panelWidth - 96;
+  const panelInner = panelWidth - 80;
 
-  // 計算 panel 高度（disposal 換行）
+  // 計算 panel 高度（disposal 換行，最多 3 行避免超出 footer）
   ctx.save();
-  ctx.font = `500 48px ${SANS}`;
-  const disposalLines = wrapText(ctx, r.disposal, panelInner).slice(0, 4);
-  const disposalLh = 70;
+  ctx.font = `500 46px ${SANS}`;
+  const disposalLines = wrapText(ctx, r.disposal, panelInner).slice(0, 3);
+  const disposalLh = 66;
   const disposalH = disposalLines.length * disposalLh;
   ctx.restore();
 
-  // 預估 panel 總高（含 city label、disposal、bin color row）
-  const cityH = 60;
-  const binH = r.binColor ? 110 : 0;
-  const panelPadV = 56;
-  const panelHeight = panelPadV * 2 + cityH + 30 + disposalH + binH;
+  const cityH = 56;
+  const binH = r.binColor ? 100 : 0;
+  const panelPadV = 40;
+  const panelHeight = panelPadV * 2 + cityH + 24 + disposalH + binH;
+
+  // panelTop 從理想位置開始，但不能讓底部超過 footer 預留線
+  const idealPanelTop = Math.max(afterName + 80, 1080);
+  const maxPanelTop = H - FOOTER_RESERVE - 40 - panelHeight;
+  const panelTop = Math.min(idealPanelTop, maxPanelTop);
 
   // panel 背景
   ctx.save();
@@ -337,27 +368,27 @@ export async function renderResultStory(r: ResultStoryInput): Promise<File> {
   ctx.fillText(`📍 ${r.cityName} · 處理方式`, panelLeft + 48, panelTop + panelPadV);
   ctx.restore();
 
-  // 處理方式本文
+  // 處理方式本文（字級 / 行高與 panel 高度計算保持一致）
   ctx.save();
   ctx.fillStyle = TEXT;
-  ctx.font = `500 48px ${SANS}`;
-  const dispY = panelTop + panelPadV + cityH + 30;
+  ctx.font = `500 46px ${SANS}`;
+  const dispY = panelTop + panelPadV + cityH + 24;
   drawLines(ctx, disposalLines, panelLeft + 48, dispY, disposalLh);
   ctx.restore();
 
   // 投入桶
   if (r.binColor) {
-    const binY = dispY + disposalH + 16;
+    const binY = dispY + disposalH + 12;
     ctx.save();
     ctx.fillStyle = GREEN;
-    ctx.font = `700 44px ${SANS}`;
+    ctx.font = `700 40px ${SANS}`;
     ctx.fillText("🗑️", panelLeft + 48, binY);
     ctx.fillStyle = DIM;
-    ctx.font = `500 32px ${SANS}`;
-    ctx.fillText("投入", panelLeft + 130, binY + 4);
+    ctx.font = `500 28px ${SANS}`;
+    ctx.fillText("投入", panelLeft + 120, binY + 2);
     ctx.fillStyle = TEXT;
-    ctx.font = `700 52px ${SANS}`;
-    ctx.fillText(r.binColor, panelLeft + 130, binY + 44);
+    ctx.font = `700 46px ${SANS}`;
+    ctx.fillText(r.binColor, panelLeft + 120, binY + 38);
     ctx.restore();
   }
 
