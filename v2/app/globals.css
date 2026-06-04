@@ -54,6 +54,21 @@ details summary::-webkit-details-marker {
   border-radius: 2px;
 }
 
+/* ─── 列印樣式 ─────────────────────────────────────────────
+   全站列印時翻成白底黑字，方便另存 PDF / 紙本印刷。
+   各頁面用 print:hidden / print:bg-white / print:text-black 細調局部。 */
+@media print {
+  html, body {
+    background: #ffffff !important;
+    color: #0a0a0a !important;
+  }
+  /* 強制顏色印出（recharts SVG bar 等） */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
 /* ─── PWA 啟動過場動畫 ─────────────────────────────────────
    靜態 #pwa-splash 元素永遠在 DOM 裡（保證第一次 paint 就能蓋住內容），
    但平常 display:none，看不到也不占位。

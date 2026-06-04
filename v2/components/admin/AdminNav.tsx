@@ -38,8 +38,8 @@ export default function AdminNav() {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 md:h-dvh md:sticky md:top-0 border-r border-neutral-900 bg-neutral-950">
+      {/* Desktop sidebar （列印時隱藏） */}
+      <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 md:h-dvh md:sticky md:top-0 border-r border-neutral-900 bg-neutral-950 print:hidden">
         <div
           className="px-5 py-5 border-b border-neutral-900"
           // iPad PWA：避開頂端狀態列
@@ -84,9 +84,9 @@ export default function AdminNav() {
         </div>
       </aside>
 
-      {/* Mobile top bar */}
+      {/* Mobile top bar （列印時隱藏）*/}
       <div
-        className="md:hidden sticky top-0 z-30 bg-black/90 backdrop-blur border-b border-neutral-900"
+        className="md:hidden sticky top-0 z-30 bg-black/90 backdrop-blur border-b border-neutral-900 print:hidden"
         // 同 Header：避開 iOS PWA Dynamic Island
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >

@@ -1,8 +1,73 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { DailyLineChart, GroupBarChart } from "@/components/admin/StatsCharts";
 import type { AdminStatsResponse } from "@/lib/api-contracts";
+
+const GROUP_LABELS_CSV: Record<string, string> = {
+  paper: "紙類",
+  plastic: "塑膠",
+  glass: "玻璃",
+  metal: "金屬",
+  food: "廚餘",
+  general: "一般垃圾",
+  hazardous: "有害",
+  large: "大型",
+  electronics: "電子",
+  clothing: "衣物",
+};
+
+// 把儀表板資料拼成多 section 的 CSV。前面加 UTF-8 BOM 讓 Excel 直接認 utf-8 中文。
+function buildCsv(stats: AdminStatsResponse): string {
+  const esc = (v: string | number) => {
+    const s = String(v);
+    if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  };
+  const rows: string[] = [];
+  rows.push("Trashform 儀表板匯出");
+  rows.push(`匯出時間,${new Date().toLocaleString("zh-TW", { hour12: false })}`);
+  rows.push("");
+  rows.push("== 關鍵指標 ==");
+  rows.push("項目,數值");
+  rows.push(`總辨識數,${stats.totalRecognitions}`);
+  rows.push(`已辨識,${stats.identifiedCount}`);
+  rows.push(`不確定,${stats.uncertainCount}`);
+  rows.push(`辨識錯誤,${stats.errorCount}`);
+  rows.push(`錯誤回報數,${stats.reportCount}`);
+  rows.push(
+    `估計正確率,${stats.accuracyEstimate != null ? (stats.accuracyEstimate * 100).toFixed(1) + "%" : "N/A"}`,
+  );
+  rows.push("");
+  rows.push("== 物品大類分布 ==");
+  rows.push("大類,數量");
+  for (const g of stats.byGroup) {
+    rows.push(
+      `${esc(GROUP_LABELS_CSV[g.group] ?? g.group)},${g.count}`,
+    );
+  }
+  rows.push("");
+  rows.push("== 近 30 天每日辨識量 ==");
+  rows.push("日期,辨識數");
+  for (const d of stats.byDay) {
+    rows.push(`${d.day},${d.count}`);
+  }
+  return "﻿" + rows.join("\n");
+}
+
+function downloadCsv(stats: AdminStatsResponse) {
+  const csv = buildCsv(stats);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `trashform-stats-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 function pct(n: number | null | undefined): string {
   if (n === null || n === undefined || Number.isNaN(n)) return "—";
@@ -100,13 +165,33 @@ export default function AdminDashboardPage() {
               ` · 最後更新 ${updatedAt.toLocaleTimeString("zh-TW")}`}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={load}
-          className="rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900"
-        >
-          重新整理
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => stats && downloadCsv(stats)}
+            disabled={!stats}
+            className="rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900 disabled:opacity-40"
+            title="把 KPI / 大類分布 / 每日辨識量匯出成 .csv，Excel 直接可開"
+          >
+            📊 匯出 CSV
+          </button>
+          <Link
+            href="/admin/export"
+            target="_blank"
+            rel="noopener"
+            className="rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900"
+            title="開啟列印友善的完整報表（含圖表與所有表格），可從瀏覽器另存為 PDF"
+          >
+            🖨️ 匯出報表（PDF）
+          </Link>
+          <button
+            type="button"
+            onClick={load}
+            className="rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900"
+          >
+            重新整理
+          </button>
+        </div>
       </div>
 
       {error && (
