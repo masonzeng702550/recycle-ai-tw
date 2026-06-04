@@ -99,9 +99,9 @@ export interface AdminUpdateOrgRequest {
 // ───── 環保冷知識 ───────────────────────────────────────
 
 // GET /api/eco-facts?count=N  （公開，辨識中畫面用）
-//   resp: { facts: string[] }  隨機 N 筆啟用中的冷知識
+//   resp: { facts: PublicEcoFact[] }  隨機 N 筆啟用中的冷知識
 export interface EcoFactsResponse {
-  facts: string[];
+  facts: { content: string; imageUrl: string | null }[];
 }
 
 // GET /api/admin/eco-facts
@@ -112,10 +112,18 @@ export interface AdminEcoFactsResponse {
 // POST /api/admin/eco-facts
 export interface AdminCreateEcoFactRequest {
   content: string;
+  imageUrl?: string | null;
 }
 
 // PATCH /api/admin/eco-facts/:id
 export interface AdminUpdateEcoFactRequest {
   content?: string;
+  imageUrl?: string | null;
   active?: boolean;
+}
+
+// POST /api/admin/eco-facts/upload-image  (FormData: image)
+export interface AdminEcoFactUploadResponse {
+  url: string;
+  pathname: string;
 }

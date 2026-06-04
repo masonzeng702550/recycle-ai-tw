@@ -21,6 +21,25 @@ export async function uploadErrorReportImage(
   return { url: result.url, pathname: result.pathname };
 }
 
+// 環保冷知識的梗圖。public access — 辨識中畫面 + 限時動態 canvas 都需要
+// 直接從瀏覽器拉，不能走 admin proxy。所以另起一個 path。
+export async function uploadEcoFactMeme(
+  file: Blob,
+  originalName?: string,
+): Promise<{ url: string; pathname: string }> {
+  const ext = guessExt(file.type, originalName);
+  const ts = Date.now();
+  const rand = Math.random().toString(36).slice(2, 10);
+  const pathname = `eco-facts/${ts}-${rand}${ext}`;
+  const result = await put(pathname, file, {
+    access: "public",
+    contentType: file.type || "image/jpeg",
+    addRandomSuffix: false,
+    allowOverwrite: false,
+  });
+  return { url: result.url, pathname: result.pathname };
+}
+
 function guessExt(mime: string, name?: string): string {
   if (name) {
     const m = name.match(/\.[a-zA-Z0-9]{2,5}$/);

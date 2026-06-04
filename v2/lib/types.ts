@@ -133,8 +133,15 @@ export interface ErrorReportRecord {
 export interface EcoFact {
   id: number;
   content: string;
+  imageUrl: string | null;
   active: boolean;
   createdAt: string;
+}
+
+// 公開端點回傳的單筆冷知識（精簡，不含 admin 欄位）
+export interface PublicEcoFact {
+  content: string;
+  imageUrl: string | null;
 }
 
 export interface AdminStats {

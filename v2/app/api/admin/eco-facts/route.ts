@@ -35,7 +35,11 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    const id = await createEcoFact(content);
+    // imageUrl 可選：null / 空字串 / undefined 都當作沒梗圖
+    const rawImg =
+      typeof body?.imageUrl === "string" ? body.imageUrl.trim() : null;
+    const imageUrl = rawImg ? rawImg : null;
+    const id = await createEcoFact(content, imageUrl);
     return NextResponse.json({ id });
   } catch (err) {
     console.error("[/api/admin/eco-facts POST] unexpected", err);

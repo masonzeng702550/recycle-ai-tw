@@ -205,22 +205,28 @@ export async function deleteOrganization(id: number): Promise<void> {
 
 // ─── eco_facts（環保冷知識）─────────────────────────────────
 
-// 隨機取 n 筆「啟用中」的冷知識內容，供辨識中畫面播放。
-export async function getRandomActiveEcoFacts(n: number): Promise<string[]> {
+// 隨機取 n 筆「啟用中」的冷知識（含可選梗圖 URL），供辨識中畫面播放。
+export async function getRandomActiveEcoFacts(
+  n: number,
+): Promise<{ content: string; imageUrl: string | null }[]> {
   const count = Math.max(1, Math.min(n, 5));
-  const { rows } = await sql<{ content: string }>`
-    SELECT content FROM eco_facts
+  const { rows } = await sql<{ content: string; image_url: string | null }>`
+    SELECT content, image_url FROM eco_facts
     WHERE active = TRUE
     ORDER BY RANDOM()
     LIMIT ${count}
   `;
-  return rows.map((r) => r.content);
+  return rows.map((r) => ({
+    content: r.content,
+    imageUrl: r.image_url ?? null,
+  }));
 }
 
 function rowToEcoFact(r: Record<string, unknown>): EcoFact {
   return {
     id: r.id as number,
     content: r.content as string,
+    imageUrl: (r.image_url as string | null) ?? null,
     active: r.active as boolean,
     createdAt: (r.created_at as Date).toISOString(),
   };
@@ -228,16 +234,20 @@ function rowToEcoFact(r: Record<string, unknown>): EcoFact {
 
 export async function listEcoFacts(): Promise<EcoFact[]> {
   const { rows } = await sql`
-    SELECT id, content, active, created_at
+    SELECT id, content, image_url, active, created_at
     FROM eco_facts
     ORDER BY created_at DESC, id DESC
   `;
   return rows.map(rowToEcoFact);
 }
 
-export async function createEcoFact(content: string): Promise<number> {
+export async function createEcoFact(
+  content: string,
+  imageUrl?: string | null,
+): Promise<number> {
   const { rows } = await sql<{ id: number }>`
-    INSERT INTO eco_facts (content) VALUES (${content})
+    INSERT INTO eco_facts (content, image_url)
+    VALUES (${content}, ${imageUrl ?? null})
     RETURNING id
   `;
   return rows[0].id;
@@ -245,10 +255,14 @@ export async function createEcoFact(content: string): Promise<number> {
 
 export async function updateEcoFact(
   id: number,
-  patch: { content?: string; active?: boolean },
+  patch: { content?: string; imageUrl?: string | null; active?: boolean },
 ): Promise<void> {
   if (patch.content !== undefined) {
     await sql`UPDATE eco_facts SET content = ${patch.content}, updated_at = NOW() WHERE id = ${id}`;
+  }
+  // imageUrl=null 表示明確清空，所以用 'in patch' 而非 !== undefined
+  if ("imageUrl" in patch) {
+    await sql`UPDATE eco_facts SET image_url = ${patch.imageUrl ?? null}, updated_at = NOW() WHERE id = ${id}`;
   }
   if (patch.active !== undefined) {
     await sql`UPDATE eco_facts SET active = ${patch.active}, updated_at = NOW() WHERE id = ${id}`;

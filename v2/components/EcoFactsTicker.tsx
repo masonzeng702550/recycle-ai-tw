@@ -6,10 +6,15 @@ import { ecoFactMessage } from "@/lib/share";
 import { renderEcoFactStory } from "@/lib/story-image";
 import ShareButtons from "./ShareButtons";
 
+interface FactWithImage {
+  content: string;
+  imageUrl: string | null;
+}
+
 // 辨識中畫面：隨機抓 1~3 則環保冷知識，依辨識時間輪流播放。
 // 任何抓取失敗都靜默隱藏，不影響辨識主流程。
 export default function EcoFactsTicker() {
-  const [facts, setFacts] = useState<string[]>([]);
+  const [facts, setFacts] = useState<FactWithImage[]>([]);
   const [idx, setIdx] = useState(0);
   const startedRef = useRef(false);
 
@@ -43,33 +48,51 @@ export default function EcoFactsTicker() {
   if (facts.length === 0) return null;
 
   const safeIdx = idx % facts.length;
-  const currentFact = facts[safeIdx];
+  const current = facts[safeIdx];
 
-  return <Card fact={currentFact} facts={facts} idx={safeIdx} />;
+  return <Card current={current} facts={facts} idx={safeIdx} />;
 }
 
 function Card({
-  fact,
+  current,
   facts,
   idx,
 }: {
-  fact: string;
-  facts: string[];
+  current: FactWithImage;
+  facts: FactWithImage[];
   idx: number;
 }) {
   // 把目前播到的那則放進 closure，按鈕點下去就分享那一則
-  const getImage = useCallback(() => renderEcoFactStory(fact), [fact]);
+  const getImage = useCallback(
+    () =>
+      renderEcoFactStory({
+        content: current.content,
+        imageUrl: current.imageUrl,
+      }),
+    [current.content, current.imageUrl],
+  );
 
   return (
     <div className="w-full max-w-xs rounded-2xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-left">
       <p className="text-xs font-semibold text-emerald-300 mb-1.5">
         💡 環保冷知識
       </p>
+      {/* 梗圖（如果有的話）— 用 key 讓切換時重新進場動畫 */}
+      {current.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={`${idx}-img`}
+          src={current.imageUrl}
+          alt=""
+          className="eco-fact-enter w-full max-h-48 object-contain rounded-xl bg-neutral-950 border border-neutral-800 mb-2"
+          loading="lazy"
+        />
+      )}
       <p
         key={idx}
         className="eco-fact-enter text-sm text-neutral-200 leading-relaxed"
       >
-        {fact}
+        {current.content}
       </p>
       {facts.length > 1 && (
         <div className="flex gap-1.5 mt-2.5" aria-hidden>
@@ -87,7 +110,7 @@ function Card({
       <div className="mt-3 pt-3 border-t border-neutral-800">
         <ShareButtons
           getStoryImage={getImage}
-          message={ecoFactMessage(fact)}
+          message={ecoFactMessage(current.content)}
           size="sm"
           label="Trashform 環保冷知識"
         />

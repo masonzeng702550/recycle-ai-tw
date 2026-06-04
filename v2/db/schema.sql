@@ -57,13 +57,18 @@ CREATE TABLE IF NOT EXISTS organizations (
 
 -- 環保冷知識：辨識時隨機播放，admin 後台可增刪改。
 -- 種子資料由 scripts/init-db.ts 在「資料表為空時」匯入，不會覆蓋後台新增的內容。
+-- image_url：可選的梗圖（public Vercel Blob URL），辨識中與分享圖可一起顯示。
 CREATE TABLE IF NOT EXISTS eco_facts (
   id              SERIAL PRIMARY KEY,
   content         TEXT NOT NULL,
+  image_url       TEXT,
   active          BOOLEAN NOT NULL DEFAULT TRUE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- 遷移：早期版本沒有 image_url，補上即可，已存在則 no-op
+ALTER TABLE eco_facts ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_eco_facts_active ON eco_facts (active);
 

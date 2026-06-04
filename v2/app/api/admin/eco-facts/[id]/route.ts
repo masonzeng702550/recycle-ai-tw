@@ -31,7 +31,11 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "請求格式錯誤。" }, { status: 400 });
     }
 
-    const patch: { content?: string; active?: boolean } = {};
+    const patch: {
+      content?: string;
+      imageUrl?: string | null;
+      active?: boolean;
+    } = {};
     if (typeof body.content === "string") {
       const content = body.content.trim();
       if (!content) {
@@ -44,6 +48,12 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         );
       }
       patch.content = content;
+    }
+    // imageUrl：明確帶 null / 空字串 → 清空梗圖；帶字串 → 更新；不帶 → 不動
+    if ("imageUrl" in body) {
+      const v =
+        typeof body.imageUrl === "string" ? body.imageUrl.trim() : null;
+      patch.imageUrl = v ? v : null;
     }
     if (typeof body.active === "boolean") patch.active = body.active;
 

@@ -212,7 +212,21 @@ async function waitFontsReady(): Promise<void> {
 }
 
 // ─── 環保冷知識限時動態 ─────────────────────────────────
-export async function renderEcoFactStory(fact: string): Promise<File> {
+// 兩種版面：
+//   - 純文字：logo / label / 大字本文 / footer
+//   - 帶梗圖：logo / label / 梗圖（contain in box）/ 較小本文 / footer
+export interface EcoFactStoryInput {
+  content: string;
+  imageUrl?: string | null;
+}
+
+export async function renderEcoFactStory(
+  input: EcoFactStoryInput | string,
+): Promise<File> {
+  // 相容舊呼叫端：以前傳純字串
+  const data: EcoFactStoryInput =
+    typeof input === "string" ? { content: input, imageUrl: null } : input;
+
   await waitFontsReady();
   const { canvas, ctx } = makeCanvas();
   fillBackground(ctx);
@@ -225,29 +239,71 @@ export async function renderEcoFactStory(fact: string): Promise<File> {
   ctx.textAlign = "center";
   ctx.fillStyle = GREEN;
   ctx.font = `700 52px ${SANS}`;
-  ctx.fillText("💡 環保冷知識", W / 2, 560);
+  ctx.fillText("💡 環保冷知識", W / 2, 540);
   ctx.restore();
 
-  // 冷知識本文（中央對齊）
+  // 帶梗圖時把圖置入畫布上半部
+  const memeImg = data.imageUrl ? await loadImage(data.imageUrl) : null;
+  let textTop: number;
+
+  if (memeImg) {
+    // 梗圖框（contain）：固定外框，圖片等比縮放置中
+    const boxX = 120;
+    const boxY = 620;
+    const boxW = W - 240;
+    const boxH = 760; // 預留下方放本文 + footer
+    // 圓角剪裁
+    ctx.save();
+    roundRect(ctx, boxX, boxY, boxW, boxH, 36);
+    ctx.fillStyle = PANEL;
+    ctx.fill();
+    ctx.clip();
+    // 縮放比例
+    const scale = Math.min(boxW / memeImg.width, boxH / memeImg.height);
+    const drawW = memeImg.width * scale;
+    const drawH = memeImg.height * scale;
+    const dx = boxX + (boxW - drawW) / 2;
+    const dy = boxY + (boxH - drawH) / 2;
+    ctx.drawImage(memeImg, dx, dy, drawW, drawH);
+    ctx.restore();
+    // 邊框
+    ctx.save();
+    roundRect(ctx, boxX, boxY, boxW, boxH, 36);
+    ctx.strokeStyle = BORDER;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+    textTop = boxY + boxH + 40;
+  } else {
+    // 沒梗圖：本文起始位置往上提，畫面才不會空蕩
+    textTop = 700;
+  }
+
+  // 冷知識本文
   ctx.save();
   ctx.textAlign = "left";
   ctx.fillStyle = TEXT;
-  ctx.font = `500 58px ${SANS}`;
+  // 有圖時字級略小，因為剩餘空間有限
+  const bodyFont = memeImg ? `500 44px ${SANS}` : `500 58px ${SANS}`;
+  const lineHeight = memeImg ? 68 : 88;
+  const maxLines = memeImg ? 3 : 8;
+  ctx.font = bodyFont;
   const maxWidth = W - 240;
-  // 限制最多 8 行，極長句末尾加 …，避免侵入 footer
-  const lineHeight = 88;
-  const wrapped = wrapText(ctx, fact, maxWidth);
-  const MAX_LINES = 8;
+  const wrapped = wrapText(ctx, data.content, maxWidth);
   const lines =
-    wrapped.length <= MAX_LINES
+    wrapped.length <= maxLines
       ? wrapped
-      : [...wrapped.slice(0, MAX_LINES - 1), `${wrapped[MAX_LINES - 1]}…`];
+      : [...wrapped.slice(0, maxLines - 1), `${wrapped[maxLines - 1]}…`];
 
   const blockHeight = lines.length * lineHeight;
-  // 居中但保證不會碰到 footer
-  const maxBottom = H - FOOTER_RESERVE - 60;
-  const idealStart = Math.max(680, (H - blockHeight) / 2 - 120);
-  const startY = Math.min(idealStart, maxBottom - blockHeight);
+  const maxBottom = H - FOOTER_RESERVE - 40;
+  // 沒梗圖時居中；有梗圖時直接從 textTop 起
+  const startY = memeImg
+    ? Math.min(textTop, maxBottom - blockHeight)
+    : Math.min(
+        Math.max(textTop, (H - blockHeight) / 2 - 120),
+        maxBottom - blockHeight,
+      );
 
   for (let i = 0; i < lines.length; i++) {
     const w = ctx.measureText(lines[i]).width;
@@ -255,14 +311,30 @@ export async function renderEcoFactStory(fact: string): Promise<File> {
   }
   ctx.restore();
 
-  // 引用線（左側細條）
-  ctx.save();
-  ctx.fillStyle = GREEN;
-  ctx.fillRect(120, startY, 6, blockHeight);
-  ctx.restore();
+  // 沒梗圖時加左側引用線；有梗圖就省略避免太雜
+  if (!memeImg) {
+    ctx.save();
+    ctx.fillStyle = GREEN;
+    ctx.fillRect(120, startY, 6, blockHeight);
+    ctx.restore();
+  }
 
   drawFooter(ctx);
   return exportAsFile(canvas, "trashform-eco-fact.png");
+}
+
+// 載入跨來源圖片到 canvas，可能失敗（CORS 拒絕等），失敗 return null。
+async function loadImage(url: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => {
+      console.warn("[story-image] meme load failed", url);
+      resolve(null);
+    };
+    img.src = url;
+  });
 }
 
 // ─── 辨識結果限時動態 ───────────────────────────────────

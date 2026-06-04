@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   AdminCreateEcoFactRequest,
   AdminEcoFactsResponse,
+  AdminEcoFactUploadResponse,
   AdminUpdateEcoFactRequest,
 } from "@/lib/api-contracts";
 import type { EcoFact } from "@/lib/types";
@@ -22,13 +23,17 @@ export default function EcoFactsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
+  // Create form state
   const [createOpen, setCreateOpen] = useState(false);
   const [createText, setCreateText] = useState("");
+  const [createImageUrl, setCreateImageUrl] = useState<string | null>(null);
   const [createBusy, setCreateBusy] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
+  // Edit form state
   const [editFact, setEditFact] = useState<EcoFact | null>(null);
   const [editText, setEditText] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState<string | null>(null);
   const [editBusy, setEditBusy] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -58,6 +63,7 @@ export default function EcoFactsPage() {
 
   function openCreate() {
     setCreateText("");
+    setCreateImageUrl(null);
     setCreateError(null);
     setCreateOpen(true);
   }
@@ -76,7 +82,10 @@ export default function EcoFactsPage() {
     }
     setCreateBusy(true);
     try {
-      const body: AdminCreateEcoFactRequest = { content };
+      const body: AdminCreateEcoFactRequest = {
+        content,
+        imageUrl: createImageUrl,
+      };
       const resp = await fetch("/api/admin/eco-facts", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -123,6 +132,7 @@ export default function EcoFactsPage() {
   function openEdit(fact: EcoFact) {
     setEditFact(fact);
     setEditText(fact.content);
+    setEditImageUrl(fact.imageUrl);
     setEditError(null);
   }
 
@@ -139,13 +149,18 @@ export default function EcoFactsPage() {
       setEditError(`內容請勿超過 ${MAX_LEN} 字`);
       return;
     }
-    if (content === editFact.content) {
+    const contentChanged = content !== editFact.content;
+    const imageChanged = (editImageUrl ?? null) !== (editFact.imageUrl ?? null);
+    if (!contentChanged && !imageChanged) {
       setEditFact(null);
       return;
     }
     setEditBusy(true);
     try {
-      await patchFact(editFact.id, { content });
+      const patch: AdminUpdateEcoFactRequest = {};
+      if (contentChanged) patch.content = content;
+      if (imageChanged) patch.imageUrl = editImageUrl;
+      await patchFact(editFact.id, patch);
       setEditFact(null);
       await load();
     } catch (e) {
@@ -184,7 +199,7 @@ export default function EcoFactsPage() {
           <h1 className="font-serif font-bold text-2xl sm:text-3xl">環保冷知識</h1>
           <p className="text-sm text-neutral-500 mt-1">
             辨識中畫面會隨機播放「啟用中」的冷知識。共 {facts.length} 則、
-            {activeCount} 則啟用中。
+            {activeCount} 則啟用中。可選擇性附上梗圖。
           </p>
         </div>
         <button
@@ -214,6 +229,14 @@ export default function EcoFactsPage() {
             {facts.map((fact) => (
               <li key={fact.id} className="p-4 flex flex-col gap-2">
                 <div className="flex items-start gap-3">
+                  {fact.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={fact.imageUrl}
+                      alt=""
+                      className="w-20 h-20 rounded-xl object-cover bg-neutral-950 border border-neutral-800 shrink-0"
+                    />
+                  )}
                   <p
                     className={`flex-1 text-sm leading-relaxed ${
                       fact.active ? "text-neutral-100" : "text-neutral-500"
@@ -276,6 +299,12 @@ export default function EcoFactsPage() {
                 placeholder="例如：鋁罐可以無限次回收，再製只需用約 5% 的能源。"
               />
             </Field>
+            <Field label="梗圖（可選）" hint="會壓縮到 1080px JPEG，PNG/HEIC/GIF 都可上傳">
+              <MemeUpload
+                imageUrl={createImageUrl}
+                onChange={setCreateImageUrl}
+              />
+            </Field>
             {createError && (
               <div className="text-sm text-red-400 bg-red-950/40 border border-red-900/60 rounded-xl px-3 py-2">
                 {createError}
@@ -314,6 +343,9 @@ export default function EcoFactsPage() {
                 className="px-3 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-100 focus:outline-none focus:border-neutral-600 resize-none"
               />
             </Field>
+            <Field label="梗圖（可選）">
+              <MemeUpload imageUrl={editImageUrl} onChange={setEditImageUrl} />
+            </Field>
             {editError && (
               <div className="text-sm text-red-400 bg-red-950/40 border border-red-900/60 rounded-xl px-3 py-2">
                 {editError}
@@ -342,6 +374,101 @@ export default function EcoFactsPage() {
   );
 }
 
+// ─── 梗圖上傳元件 ──────────────────────────────────────
+// 包含「選檔 → POST upload-image → 設定 imageUrl」整個流程，
+// 與「清除」按鈕。預覽用瀏覽器原生 <img>。
+function MemeUpload({
+  imageUrl,
+  onChange,
+}: {
+  imageUrl: string | null;
+  onChange: (url: string | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handleFile(file: File) {
+    setErr(null);
+    setBusy(true);
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const resp = await fetch("/api/admin/eco-facts/upload-image", {
+        method: "POST",
+        body: fd,
+      });
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        setErr(data?.error ?? `上傳失敗 (${resp.status})`);
+        return;
+      }
+      const data = (await resp.json()) as AdminEcoFactUploadResponse;
+      onChange(data.url);
+    } catch {
+      setErr("網路錯誤");
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {imageUrl ? (
+        <div className="flex gap-3 items-start">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl}
+            alt="梗圖預覽"
+            className="w-32 h-32 rounded-xl object-cover bg-neutral-950 border border-neutral-800"
+          />
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={busy}
+              className="px-3 py-1.5 rounded-full border border-neutral-800 text-xs hover:bg-neutral-900 disabled:opacity-50"
+            >
+              {busy ? "上傳中…" : "換一張"}
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange(null)}
+              disabled={busy}
+              className="px-3 py-1.5 rounded-full border border-red-900/60 text-xs text-red-300 hover:bg-red-950/40 disabled:opacity-50"
+            >
+              移除
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          className="px-4 py-3 rounded-xl border border-dashed border-neutral-700 text-sm text-neutral-400 hover:bg-neutral-900 disabled:opacity-50 text-left"
+        >
+          {busy ? "上傳中…" : "+ 選擇梗圖"}
+        </button>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void handleFile(f);
+        }}
+      />
+      {err && (
+        <span className="text-xs text-red-400">{err}</span>
+      )}
+    </div>
+  );
+}
+
 function Modal({
   title,
   onClose,
@@ -357,7 +484,7 @@ function Modal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-6 flex flex-col gap-4"
+        className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
