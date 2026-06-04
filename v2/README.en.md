@@ -1,6 +1,6 @@
 # Trashform v2 — `recycle-ai-tw`
 
-[中文](README.md) · **English**
+[中文](README.md) · **English** · **Current version: v2.4** ([changelog](#changelog))
 
 > A localized waste-sorting guide for Taiwan, closing the gap between everyday recycling knowledge and what each city actually accepts, by way of AI image recognition. Civic-action capstone, Taipei Municipal Experimental Senior High School of Digital Arts.
 
@@ -401,11 +401,15 @@ CRUD directly in `/admin/eco-facts`, or import the contents of `db/eco-facts-see
 
 ## Changelog
 
-| Version | Highlights |
-|---|---|
-| **v2.0** | Pure front-end; client-side Gemini; API key only in LocalStorage. |
-| **v2.1** | Full-stack: Postgres + Blob + Cloudflare Turnstile + admin dashboard + org codes + auto-archive on uncertain/error + composite-material breakdown + client resize + HEIC fallback. |
-| **v2.2** (current) | Auto-fire recognition; result modal; cross-city comparison; capture tips popup; PWA (iOS startup image / Dynamic Island safe-area / brand splash); eco-facts ticker; server-side image compression; rate-limit isolation; IG + feedback hooks; 67676767 easter egg. |
+Versions are framed by theme rather than calendar week — each one tackled a specific phase of the project.
+
+| Version | Dates | Theme | Highlights |
+|---|---|---|---|
+| **v2.0** | 2026-04-29 | Frontend prototype | Next.js + React + Tailwind; client-side Gemini; API key only in LocalStorage; Taipei / Kaohsiung catalog and result UI scaffold. |
+| **v2.1** | 2026-05-13 – 14 | Full-stack foundation | Whole stack rebuilt in a single day: Postgres + Blob + Cloudflare Turnstile + JWT admin dashboard; organization codes (shared server-side Gemini key — students don't need their own API); composite-material breakdown (bubble-tea cup = cup + straw + seal); HEIC → JPEG (client primary, server fallback); client-side resize to dodge the 4.5 MB body cap; auto-archive of uncertain / error recognitions. |
+| **v2.2** | 2026-05-18 | Onboarding | Tutorial page: device-aware media that swaps between phone-shot and desktop-shot walkthroughs; header no longer wraps vertically on narrow phones. |
+| **v2.3** | 2026-05-27 – 31 | Mobile-first + friction removal | Dual-option popup on first use (org code vs. bring-your-own key); server-side sharp compression (existing 19 blobs went 14.58 → 1.42 MB, −90%); auto-fire recognition on upload (the "Recognize" button is gone); rate-limit errors isolated from real recognition failures (no DB write, "System busy" modal auto-reloads); IG + feedback form pills on the home page + first-success promo modal; install-as-PWA (manifest + service worker + install button + iOS walkthrough); `67676767` easter egg in any API-key input. |
+| **v2.4** (current) | 2026-06-01 – 04 | Result UX + social sharing | iPhone Dynamic Island safe-area handling (`env(safe-area-inset-top)`); PWA brand splash + `apple-touch-startup-image` ×13 device sizes; result rendered as a modal popup with the key bits enlarged; secondary info (AI reasoning, notes, cross-city comparison) collapsed behind `<details>`; cross-city disposal comparison; capture-tips popup before taking a photo; eco-facts pool with optional meme images + in-recognition ticker; IG Story + LINE share with message and 1080×1920 Canvas story templates; dashboard CSV / PDF export. |
 
 Full history: `git log --oneline`.
 

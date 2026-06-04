@@ -1,6 +1,6 @@
 # Trashform v2 — `recycle-ai-tw`
 
-**中文** · [English](README.en.md)
+**中文** · [English](README.en.md) · **目前版本：v2.4**（[變更歷程](#變更歷程)）
 
 > 以 AI 影像辨識彌補民眾廢棄物分類認知落差 — 涵蓋日常回收與淨灘場域之在地化指引系統。臺北市數位實驗高中公民行動學期專題。
 
@@ -401,11 +401,15 @@ npx tsx scripts/<name>.ts
 
 ## 變更歷程
 
-| 版本 | 重點 |
-|---|---|
-| **v2.0** | 純前端，純 client-side Gemini，API Key 僅在 localStorage |
-| **v2.1** | 全端化：Postgres + Blob + Cloudflare Turnstile + 管理員後台 + 組織代號 + 異動回報自動歸檔 + 複合材質拆解 + 客戶端縮圖 + HEIC fallback |
-| **v2.2**（此版本） | 自動辨識、結果彈窗、跨縣市差異、拍攝指引、PWA（含 iOS startup image / Dynamic Island safe-area / brand splash）、環保冷知識輪播、server 端圖片壓縮、速率限制錯誤分離、IG/回饋入口、67676767 彩蛋 |
+每個版本對應一個明確的階段任務（不是純按日期切，是按主題切）。
+
+| 版本 | 日期 | 主題 | 重點 |
+|---|---|---|---|
+| **v2.0** | 2026-04-29 | 純前端雛形 | Next.js + React + Tailwind；客戶端 Gemini；API Key 僅存 localStorage；臺北 / 高雄 catalog 與結果頁雛形。 |
+| **v2.1** | 2026-05-13 ~ 14 | 全端化 | 一天內全端翻新：Postgres + Blob + Cloudflare Turnstile + JWT admin 後台；組織代號（共用 server-side Gemini Key，學生不用自備 API）；複合材質拆解（手搖飲 = 杯 + 吸管 + 封膜）；HEIC → JPEG（client 主 + server fallback）；客戶端縮圖避開 4.5 MB 上限；不確定 / 失敗自動歸檔。 |
+| **v2.2** | 2026-05-18 | 使用教學 | 使用教學頁：根據裝置自動切換手機版 / 桌機版的截圖與影片；header 在窄手機上不再縱向換行。 |
+| **v2.3** | 2026-05-27 ~ 31 | 手機優先 + 去摩擦 | 第一次使用組織代號 / 自己 Key 雙選彈窗；server 端 sharp 圖片壓縮（既有 19 張舊圖 14.58 → 1.42 MB，省 90%）；上傳完自動辨識（移除「開始辨識」按鈕）；Gemini 速率限制錯誤跟辨識失敗分離（不寫 DB、跳「系統錯誤」自動 reload）；首頁 IG / 回饋表單按鈕 + 首次辨識成功彈窗；加到手機桌面（PWA manifest + SW + install button + iOS 教學流程）；`67676767` API Key 欄位彩蛋。 |
+| **v2.4**（當前） | 2026-06-01 ~ 04 | 結果體驗 + 社群分享 | iPhone Dynamic Island 避讓（`env(safe-area-inset-top)`）；PWA 啟動過場動畫 + `apple-touch-startup-image` ×13 種尺寸；辨識結果改用彈出式視窗 + 重要文字放大；次要資訊（判斷說明 / 注意事項 / 跨縣市差異）全收合；跨縣市處理方式差異對比；拍攝前指引彈窗；環保冷知識資料庫（含可選梗圖）+ 辨識中輪播；IG 限時動態 / LINE 分享 + 訊息與動態模板（Canvas 1080×1920）；儀表板 CSV / PDF 匯出。 |
 
 完整 commit 紀錄：`git log --oneline`
 
