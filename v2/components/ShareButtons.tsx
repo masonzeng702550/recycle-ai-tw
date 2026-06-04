@@ -10,6 +10,7 @@ import {
   shareToLine,
   SITE_URL,
 } from "@/lib/share";
+import { CheckIcon } from "@/components/icons";
 
 interface Props {
   // 取得限時動態 PNG（呼叫時才生圖，避免頁面 idle 時的浪費）
@@ -114,9 +115,10 @@ export default function ShareButtons({
         </span>
       )}
       {tip && (
-        <p className="w-full text-[11px] sm:text-xs text-emerald-300 leading-relaxed bg-emerald-950/30 border border-emerald-900/40 rounded-lg px-3 py-2">
-          ✅ {tip}
-        </p>
+        <div className="w-full flex items-start gap-2 text-[11px] sm:text-xs text-emerald-300 leading-relaxed bg-emerald-950/30 border border-emerald-900/40 rounded-lg px-3 py-2">
+          <CheckIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          <span>{tip}</span>
+        </div>
       )}
     </div>
   );

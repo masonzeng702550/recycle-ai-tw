@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import {
+  CameraIcon,
+  DesktopIcon,
+  FilmIcon,
+  PhoneIcon,
+} from "@/components/icons";
 import { getCityId, setCityId as saveCityId } from "@/lib/storage";
 import type { CityId } from "@/lib/types";
 
@@ -53,7 +59,7 @@ const STEPS: Step[] = [
     imageBase: "report",
     imageAlt: "回報分錯了對話框",
     body: [
-      "結果不正確？按結果卡片左下的「🚩 回報分錯了」開啟回報對話框。",
+      "結果不正確？按結果卡片左下的「回報分錯了」開啟回報對話框。",
       "可以選擇「應該是哪一項」並填補充說明，照片會永久保留供管理員審查與資料庫改善。",
       "如果 AI 直接回「不確定」或辨識失敗，系統也會自動歸檔成「異動回報」，你不用做任何事。",
     ],
@@ -112,23 +118,25 @@ export default function TutorialPage() {
             <div className="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs">
               <button
                 onClick={() => setDevice("mobile")}
-                className={`px-3 py-1.5 rounded-full transition-colors ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
                   device === "mobile"
                     ? "bg-white text-black font-medium"
                     : "text-neutral-400 hover:text-neutral-100"
                 }`}
               >
-                📱 手機版
+                <PhoneIcon className="w-4 h-4" />
+                手機版
               </button>
               <button
                 onClick={() => setDevice("desktop")}
-                className={`px-3 py-1.5 rounded-full transition-colors ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
                   device === "desktop"
                     ? "bg-white text-black font-medium"
                     : "text-neutral-400 hover:text-neutral-100"
                 }`}
               >
-                💻 電腦版
+                <DesktopIcon className="w-4 h-4" />
+                電腦版
               </button>
             </div>
             {autoDetected && (
@@ -140,8 +148,9 @@ export default function TutorialPage() {
 
           {/* 操作影片 — 放最前面作為 overview */}
           <section className="space-y-3">
-            <h2 className="font-serif text-lg sm:text-xl font-semibold">
-              🎬 操作影片
+            <h2 className="flex items-center gap-2 font-serif text-lg sm:text-xl font-semibold">
+              <FilmIcon className="w-5 h-5 text-neutral-400" />
+              操作影片
             </h2>
             <p className="text-xs text-neutral-500">
               {device === "mobile"
@@ -166,8 +175,9 @@ export default function TutorialPage() {
 
           {/* 5 步驟截圖 */}
           <section className="space-y-6">
-            <h2 className="font-serif text-lg sm:text-xl font-semibold">
-              📸 分步驟說明
+            <h2 className="flex items-center gap-2 font-serif text-lg sm:text-xl font-semibold">
+              <CameraIcon className="w-5 h-5 text-neutral-400" />
+              分步驟說明
             </h2>
 
             <ol className="space-y-8">

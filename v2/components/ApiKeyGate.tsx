@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { maybePlayEgg } from "@/lib/easter-egg";
+import { ArrowRightIcon, WarningIcon } from "@/components/icons";
 import type {
   OrgValidateRequest,
   OrgValidateResponse,
@@ -210,14 +211,16 @@ export default function ApiKeyGate({
                 href="https://aistudio.google.com/apikey"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block text-xs text-blue-400 hover:underline"
+                className="inline-flex items-center gap-1 text-xs text-blue-400 hover:underline"
               >
-                👉 前往 Google AI Studio 取得免費 API Key
+                前往 Google AI Studio 取得免費 API Key
+                <ArrowRightIcon className="w-3 h-3" />
               </a>
             </div>
 
-            <div className="text-xs text-amber-400/80 bg-amber-950/30 border border-amber-900/40 rounded-lg p-3 leading-relaxed">
-              ⚠️ 請使用個人或測試用 Key，避免使用組織付費 Key。本工具不會將 Key 上傳，但前端可能會在你的瀏覽器留下紀錄。
+            <div className="flex gap-2 text-xs text-amber-400/80 bg-amber-950/30 border border-amber-900/40 rounded-lg p-3 leading-relaxed">
+              <WarningIcon className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>請使用個人或測試用 Key，避免使用組織付費 Key。本工具不會將 Key 上傳，但前端可能會在你的瀏覽器留下紀錄。</span>
             </div>
 
             <div className="flex gap-2">

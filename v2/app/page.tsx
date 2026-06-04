@@ -12,6 +12,7 @@ import EcoFactsTicker from "@/components/EcoFactsTicker";
 import SocialLinks from "@/components/SocialLinks";
 import SystemBusyModal from "@/components/SystemBusyModal";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import { ArrowDownIcon, CheckIcon } from "@/components/icons";
 import { getCityRule } from "@/lib/catalog";
 import { maybeResizeImage } from "@/lib/image-resize";
 import {
@@ -347,7 +348,7 @@ export default function HomePage() {
               )}
 
               <p className="text-xs text-neutral-600 leading-relaxed">
-                📸 圖片僅用於本次辨識、不會保留；你的 API Key 不會被記錄。
+                圖片僅用於本次辨識、不會保留；你的 API Key 不會被記錄。
               </p>
             </section>
 
@@ -451,7 +452,9 @@ function ResultDoneAside({
     <div className="rounded-3xl bg-neutral-900 overflow-hidden">
       <div className="p-5 sm:p-6 space-y-4">
         <header className="flex items-center gap-3">
-          <span className="text-3xl">✅</span>
+          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-500/15 text-emerald-400 shrink-0">
+            <CheckIcon className="w-5 h-5" />
+          </span>
           <div className="min-w-0">
             <h2 className="font-serif text-lg font-bold">辨識完成</h2>
             <p className="text-sm text-neutral-400 mt-0.5 truncate">
@@ -587,7 +590,10 @@ function AnalyzingAside() {
       <div className="w-12 h-12 rounded-full border-2 border-neutral-700 border-t-neutral-300 animate-spin" />
       <div className="text-center space-y-1">
         <p className="font-serif text-lg text-neutral-200">AI 正在分析圖片</p>
-        <p className="text-xs text-neutral-600">通常需要 5–10 秒，先來點冷知識 👇</p>
+        <p className="inline-flex items-center justify-center gap-1.5 text-xs text-neutral-600">
+          通常需要 5–10 秒，先來點冷知識
+          <ArrowDownIcon className="w-3 h-3" />
+        </p>
       </div>
       <EcoFactsTicker />
     </div>

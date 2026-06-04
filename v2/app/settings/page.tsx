@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { CheckIcon } from "@/components/icons";
 import { maybePlayEgg } from "@/lib/easter-egg";
 import {
   clearAll,
@@ -179,8 +180,9 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="font-serif text-lg font-semibold">組織代號</h2>
               {savedOrgCode && (
-                <span className="text-xs text-emerald-400">
-                  ✓ 已儲存：{savedOrgCode}
+                <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+                  <CheckIcon className="w-3 h-3" />
+                  已儲存：{savedOrgCode}
                 </span>
               )}
             </div>
@@ -220,8 +222,9 @@ export default function SettingsPage() {
               )}
             </div>
             {orgMsg?.kind === "ok" && (
-              <p className="text-xs text-emerald-400">
-                ✓ 已連線到組織：{orgMsg.name}
+              <p className="inline-flex items-center gap-1 text-xs text-emerald-400">
+                <CheckIcon className="w-3 h-3" />
+                已連線到組織：{orgMsg.name}
               </p>
             )}
             {orgMsg?.kind === "err" && (
@@ -234,8 +237,9 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="font-serif text-lg font-semibold">Gemini API Key</h2>
               {savedKey && (
-                <span className="text-xs text-emerald-400">
-                  ✓ 已儲存（{savedKey.slice(0, 6)}…{savedKey.slice(-4)}）
+                <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+                  <CheckIcon className="w-3 h-3" />
+                  已儲存（{savedKey.slice(0, 6)}…{savedKey.slice(-4)}）
                 </span>
               )}
             </div>
@@ -279,7 +283,7 @@ export default function SettingsPage() {
               )}
             </div>
             {savedFlash === "key" && (
-              <p className="text-xs text-emerald-400">✓ 已儲存。</p>
+              <p className="inline-flex items-center gap-1 text-xs text-emerald-400"><CheckIcon className="w-3 h-3" />已儲存。</p>
             )}
           </section>
 
@@ -366,7 +370,7 @@ export default function SettingsPage() {
               一鍵清除
             </button>
             {savedFlash === "wipe" && (
-              <p className="text-xs text-emerald-400">✓ 已清除。</p>
+              <p className="inline-flex items-center gap-1 text-xs text-emerald-400"><CheckIcon className="w-3 h-3" />已清除。</p>
             )}
           </section>
 

@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { PrinterIcon } from "@/components/icons";
 import type { AdminStatsResponse } from "@/lib/api-contracts";
 
 // 列印 / PDF 友善的儀表板報表頁。
@@ -102,9 +103,10 @@ export default function ExportReportPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="print:hidden rounded-full bg-neutral-900 text-white px-5 py-2 text-sm font-medium hover:bg-neutral-700"
+            className="print:hidden inline-flex items-center gap-2 rounded-full bg-neutral-900 text-white px-5 py-2 text-sm font-medium hover:bg-neutral-700"
           >
-            🖨️ 列印 / 另存 PDF
+            <PrinterIcon className="w-4 h-4" />
+            列印 / 另存 PDF
           </button>
         </header>
 

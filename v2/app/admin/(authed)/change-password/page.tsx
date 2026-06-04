@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CheckIcon } from "@/components/icons";
 import type { AdminChangePasswordRequest } from "@/lib/api-contracts";
 
 const MIN_LEN = 12;
@@ -115,8 +116,9 @@ export default function ChangePasswordPage() {
           </div>
         )}
         {success && (
-          <div className="text-sm text-emerald-300 bg-emerald-950/40 border border-emerald-900/60 rounded-xl px-3 py-2">
-            ✓ 已更新，下次登入請使用新密碼
+          <div className="flex items-center gap-2 text-sm text-emerald-300 bg-emerald-950/40 border border-emerald-900/60 rounded-xl px-3 py-2">
+            <CheckIcon className="w-4 h-4 shrink-0" />
+            已更新，下次登入請使用新密碼
           </div>
         )}
 

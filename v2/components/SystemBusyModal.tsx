@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { WarningIcon } from "@/components/icons";
 
 interface Props {
   open: boolean;
@@ -37,7 +38,9 @@ export default function SystemBusyModal({ open, countdownSec = 5 }: Props) {
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="w-full sm:max-w-md bg-neutral-950 border border-neutral-800 rounded-t-3xl sm:rounded-3xl p-6 space-y-5">
         <header className="space-y-2 text-center">
-          <div className="text-4xl">⚠️</div>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/15 text-amber-400 mx-auto">
+            <WarningIcon className="w-7 h-7" />
+          </div>
           <h2 className="font-serif text-xl sm:text-2xl font-bold">
             系統錯誤
           </h2>

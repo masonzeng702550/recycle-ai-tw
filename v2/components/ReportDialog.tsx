@@ -4,6 +4,7 @@ import { useState } from "react";
 import { items as ALL_ITEMS } from "@/lib/catalog";
 import { maybeResizeImage } from "@/lib/image-resize";
 import { addReport } from "@/lib/storage";
+import { CheckIcon } from "@/components/icons";
 import type { CityId } from "@/lib/types";
 
 interface Props {
@@ -108,8 +109,10 @@ export default function ReportDialog({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="w-full sm:max-w-md bg-neutral-950 border border-neutral-800 rounded-t-3xl sm:rounded-3xl p-6 space-y-4">
         {status.kind === "done" ? (
-          <div className="py-10 text-center space-y-2">
-            <div className="text-3xl">✓</div>
+          <div className="py-10 text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/15 text-emerald-400 mx-auto">
+              <CheckIcon className="w-6 h-6" />
+            </div>
             <p className="text-sm text-neutral-300">已記錄回報，謝謝！</p>
             {status.warn ? (
               <p className="text-xs text-amber-400/80">{status.warn}</p>

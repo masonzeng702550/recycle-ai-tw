@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { QuestionIcon } from "@/components/icons";
 import type { UncertainResult } from "@/lib/types";
 
 interface Props {
@@ -25,7 +26,7 @@ export default function ClarifyDialog({ result, onSubmit, onCancel }: Props) {
   return (
     <div className="rounded-3xl bg-neutral-900 border border-neutral-800 p-5 sm:p-6 space-y-5">
       <header className="flex items-start gap-3">
-        <span className="text-2xl">❓</span>
+        <QuestionIcon className="w-6 h-6 mt-1 text-neutral-300 shrink-0" />
         <div>
           <h2 className="font-serif text-lg font-bold">
             {result.partialName ? `可能是「${result.partialName}」？` : "需要更多資訊"}

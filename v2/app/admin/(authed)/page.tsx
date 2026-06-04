@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { DailyLineChart, GroupBarChart } from "@/components/admin/StatsCharts";
+import { ChartIcon, PrinterIcon } from "@/components/icons";
 import type { AdminStatsResponse } from "@/lib/api-contracts";
 
 const GROUP_LABELS_CSV: Record<string, string> = {
@@ -170,19 +171,21 @@ export default function AdminDashboardPage() {
             type="button"
             onClick={() => stats && downloadCsv(stats)}
             disabled={!stats}
-            className="rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900 disabled:opacity-40"
             title="把 KPI / 大類分布 / 每日辨識量匯出成 .csv，Excel 直接可開"
           >
-            📊 匯出 CSV
+            <ChartIcon className="w-4 h-4" />
+            匯出 CSV
           </button>
           <Link
             href="/admin/export"
             target="_blank"
             rel="noopener"
-            className="rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900"
+            className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 px-4 py-1.5 text-sm hover:bg-neutral-900"
             title="開啟列印友善的完整報表（含圖表與所有表格），可從瀏覽器另存為 PDF"
           >
-            🖨️ 匯出報表（PDF）
+            <PrinterIcon className="w-4 h-4" />
+            匯出報表（PDF）
           </Link>
           <button
             type="button"

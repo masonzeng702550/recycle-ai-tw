@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { EcoFactsResponse } from "@/lib/api-contracts";
 import { ecoFactMessage } from "@/lib/share";
 import { renderEcoFactStory } from "@/lib/story-image";
+import { LightbulbIcon } from "@/components/icons";
 import ShareButtons from "./ShareButtons";
 
 interface FactWithImage {
@@ -74,8 +75,9 @@ function Card({
 
   return (
     <div className="w-full max-w-xs rounded-2xl bg-neutral-900 border border-neutral-800 px-4 py-3 text-left">
-      <p className="text-xs font-semibold text-emerald-300 mb-1.5">
-        💡 環保冷知識
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-300 mb-1.5">
+        <LightbulbIcon className="w-3.5 h-3.5" />
+        環保冷知識
       </p>
       {/* 梗圖（如果有的話）— 用 key 讓切換時重新進場動畫 */}
       {current.imageUrl && (

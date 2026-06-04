@@ -1,6 +1,7 @@
 "use client";
 
 import { SOCIAL } from "@/lib/social";
+import { SparkleIcon } from "@/components/icons";
 
 interface Props {
   open: boolean;
@@ -17,7 +18,9 @@ export default function FirstSuccessPromo({ open, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="w-full sm:max-w-md bg-neutral-950 border border-neutral-800 rounded-t-3xl sm:rounded-3xl p-6 space-y-5">
         <header className="space-y-2 text-center">
-          <div className="text-3xl">🎉</div>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-fuchsia-500/20 to-amber-500/20 text-amber-300 mx-auto">
+            <SparkleIcon className="w-7 h-7" />
+          </div>
           <h2 className="font-serif text-xl sm:text-2xl font-bold">
             感謝你使用 Trashform！
           </h2>

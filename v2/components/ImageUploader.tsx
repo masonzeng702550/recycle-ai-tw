@@ -1,6 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
+import {
+  BlurIcon,
+  BoxIcon,
+  CameraIcon,
+  LightbulbIcon,
+  TargetIcon,
+  ZoomIcon,
+} from "@/components/icons";
 import type { UploadedImage } from "@/lib/types";
 
 interface Props {
@@ -152,24 +160,26 @@ export default function ImageUploader({
   );
 }
 
-const PHOTO_TIPS: { icon: string; text: string }[] = [
-  { icon: "🎯", text: "讓物品置中，佔畫面一半以上" },
-  { icon: "💡", text: "光線充足、避免反光與深色陰影" },
-  { icon: "📦", text: "一次只拍一個物品" },
-  { icon: "🫥", text: "背景越單純越好，移開雜物" },
-  { icon: "🔍", text: "對焦清楚、手不要晃" },
+type TipIcon = (props: { className?: string }) => React.ReactElement;
+const PHOTO_TIPS: { Icon: TipIcon; text: string }[] = [
+  { Icon: TargetIcon, text: "讓物品置中，佔畫面一半以上" },
+  { Icon: LightbulbIcon, text: "光線充足、避免反光與深色陰影" },
+  { Icon: BoxIcon, text: "一次只拍一個物品" },
+  { Icon: BlurIcon, text: "背景越單純越好，移開雜物" },
+  { Icon: ZoomIcon, text: "對焦清楚、手不要晃" },
 ];
 
 function PhotoTips() {
   return (
     <div className="rounded-2xl bg-neutral-900/60 border border-neutral-800 px-4 py-3">
-      <p className="text-sm font-semibold text-neutral-200 mb-2">
-        📷 拍攝技巧（拍清楚辨識更準）
+      <p className="flex items-center gap-2 text-sm font-semibold text-neutral-200 mb-2">
+        <CameraIcon className="w-4 h-4" />
+        拍攝技巧（拍清楚辨識更準）
       </p>
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
         {PHOTO_TIPS.map((t, i) => (
           <li key={i} className="flex items-start gap-2 text-sm text-neutral-300">
-            <span className="shrink-0">{t.icon}</span>
+            <t.Icon className="w-4 h-4 mt-0.5 shrink-0 text-neutral-400" />
             <span className="leading-snug">{t.text}</span>
           </li>
         ))}
