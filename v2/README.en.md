@@ -401,15 +401,53 @@ CRUD directly in `/admin/eco-facts`, or import the contents of `db/eco-facts-see
 
 ## Changelog
 
-Versions are framed by theme rather than calendar week — each one tackled a specific phase of the project.
+Versions are framed by theme rather than calendar week — each one tackled a specific phase of the project. Each bullet is a one-sentence (or short paragraph) description of what the feature actually does and why.
 
-| Version | Dates | Theme | Highlights |
-|---|---|---|---|
-| **v2.0** | 2026-04-29 | Frontend prototype | Next.js + React + Tailwind; client-side Gemini; API key only in LocalStorage; Taipei / Kaohsiung catalog and result UI scaffold. |
-| **v2.1** | 2026-05-13 – 14 | Full-stack foundation | Whole stack rebuilt in a single day: Postgres + Blob + Cloudflare Turnstile + JWT admin dashboard; organization codes (shared server-side Gemini key — students don't need their own API); composite-material breakdown (bubble-tea cup = cup + straw + seal); HEIC → JPEG (client primary, server fallback); client-side resize to dodge the 4.5 MB body cap; auto-archive of uncertain / error recognitions. |
-| **v2.2** | 2026-05-18 | Onboarding | Tutorial page: device-aware media that swaps between phone-shot and desktop-shot walkthroughs; header no longer wraps vertically on narrow phones. |
-| **v2.3** | 2026-05-27 – 31 | Mobile-first + friction removal | Dual-option popup on first use (org code vs. bring-your-own key); server-side sharp compression (existing 19 blobs went 14.58 → 1.42 MB, −90%); auto-fire recognition on upload (the "Recognize" button is gone); rate-limit errors isolated from real recognition failures (no DB write, "System busy" modal auto-reloads); IG + feedback form pills on the home page + first-success promo modal; install-as-PWA (manifest + service worker + install button + iOS walkthrough); `67676767` easter egg in any API-key input. |
-| **v2.4** (current) | 2026-06-01 – 04 | Result UX + social sharing | iPhone Dynamic Island safe-area handling (`env(safe-area-inset-top)`); PWA brand splash + `apple-touch-startup-image` ×13 device sizes; result rendered as a modal popup with the key bits enlarged; secondary info (AI reasoning, notes, cross-city comparison) collapsed behind `<details>`; cross-city disposal comparison; capture-tips popup before taking a photo; eco-facts pool with optional meme images + in-recognition ticker; IG Story + LINE share with message and 1080×1920 Canvas story templates; dashboard CSV / PDF export. |
+### v2.0 · Frontend prototype (2026-04-29)
+
+- **Identifies objects in photos with the AI freely composing its own reply; does not support composite materials yet.**
+- Pure front-end stack (Next.js + React + Tailwind), no backend at all.
+- Gemini API is called from the browser; the API key only lives in LocalStorage and never leaves the device.
+- Bundled with Taipei / Kaohsiung catalogs and a basic result page.
+
+### v2.1 · Full-stack foundation (2026-05-13 – 14)
+
+- **Composite-material recognition** — for items made of multiple materials (e.g. a bubble-tea cup = paper cup + straw + sealing film), the AI now decomposes the object and emits a disposal note for each part.
+- Whole stack rebuilt in a single day: Postgres + Blob + Cloudflare Turnstile + JWT admin dashboard.
+- Organization-code system — teachers issue a code (e.g. `t202605`) and students don't need their own Gemini API key; the shared server-side key is used behind the scenes.
+- iPhone HEIC / HEIF photos are auto-converted to JPEG (client primary, server fallback) so users never have to think about format.
+- The client downsamples photos > 2560 px before upload to stay under Vercel serverless' 4.5 MB body cap.
+- Uncertain / failed recognitions auto-archive to the admin error-reports queue with the original photo retained for later catalog improvement.
+
+### v2.2 · Onboarding (2026-05-18)
+
+- New tutorial page that automatically swaps between phone-shot and desktop-shot walkthrough media based on the visitor's device.
+- Header nav stops wrapping vertically on narrow phones, cleaning up the chrome.
+
+### v2.3 · Mobile-first + friction removal (2026-05-27 – 31)
+
+- First-visit popup is now a binary choice: use the organization code (shared server key) or paste your own Gemini API key; copy spells out `t202605` so students don't read it as placeholder text.
+- Server-side sharp compression for every upload going to Blob (≤1600 px / JPEG q75), plus a one-shot migration of the existing 19 historical blobs — total error-report storage went 14.58 MB → 1.42 MB (−90%).
+- Recognition fires automatically the moment the photo and Cloudflare Turnstile are both ready; the "Recognize" button is gone, removing a tap of friction.
+- Rate-limit errors (Gemini 429) are now isolated from real recognition errors — they do not write the DB or pollute stats; the client shows a "System error" modal that counts down 5 s and reloads. A one-click admin button cleans up any pre-existing pollution.
+- **Social-account link button added on the home page to grow project exposure** (IG `@trashform.team` gradient pill).
+- **Feedback-form link button added on the home page to encourage feedback submissions** (Google Form pill).
+- First-success modal — the first time a device gets an identified result, a one-shot popup nudges the user to follow IG or fill the feedback form.
+- **"Add to home screen" install flow guides users to install the PWA, raising the chance the tool keeps getting used** — Android Chrome triggers the native install dialog; iOS Safari shows a "Share → Add to Home Screen" three-step walkthrough; the button hides itself once `display-mode: standalone` is detected.
+- Easter egg: typing `67676767` into any API-key input plays a sound clip.
+
+### v2.4 · Result UX + social sharing (current, 2026-06-01 – 04)
+
+- Fixed: in iPhone standalone PWA, the top nav was being half-eaten by the Dynamic Island; sticky headers now respect `env(safe-area-inset-top)` so the background extends behind the cutout.
+- PWA launch transition — a custom brand splash plus 13 sizes of `apple-touch-startup-image` cover every modern iPhone / iPad, eliminating the "homepage flashes for a frame before the splash" issue on iOS.
+- Recognition results render as a modal popup so users don't miss them.
+- **Typography enlarged across the result UI for clarity** — item name, disposal method, and bin colour are bigger; verbose explanatory copy was trimmed.
+- Secondary info (AI reasoning, notes, cross-city differences) collapsed behind `<details>`, leaving only "category / disposal / bin" on the primary view.
+- Side-by-side cross-city disposal comparison — users on Taipei can see Kaohsiung's handling of the same item at a glance.
+- Capture-tips popup before the photo is taken (clear subject, single item, good light, …) to boost first-attempt accuracy.
+- New eco-facts pool (admin CRUD, each fact optionally pairs with a Chinese meme image), with 1–3 random facts rotating during recognition wait.
+- One-tap share-to-Instagram-Story / share-to-LINE on mobile: client-side Canvas renders a 1080×1920 story image with brand logo, URL pill, and `@trashform.team` baked in; the URL is copied to the clipboard for IG's link sticker; LINE share uses the official URL scheme to pre-fill the message.
+- Dashboard export — a CSV download button plus a print-friendly report page covering KPI table, category bar chart, daily line chart and full breakdowns; the browser's native "Save as PDF" closes the loop.
 
 Full history: `git log --oneline`.
 
