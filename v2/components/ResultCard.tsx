@@ -316,30 +316,35 @@ function Collapsible({
   );
 }
 
-// ─── 各縣市差異收合 ─────────────────────────────────
+// ─── 各縣市處理方式（收合）─────────────────────────
+// 統一用 Collapsible：不論「不同」或「相同」都收起來，避免主畫面雜亂。
+// 標題與配色會依「是否相同」切換，讓使用者一眼就知道要不要展開。
 function CityDifference({ item, cityId }: { item: Item; cityId: CityId }) {
   const all = getAllDisposals(item);
   if (all.length < 2) return null;
   const differ = disposalsDiffer(item);
-
-  if (!differ) {
-    return (
-      <p className="text-[11px] text-neutral-600 pl-1">
-        此物品在 {all.map((d) => d.cityName).join("、")} 的處理方式相同。
-      </p>
-    );
-  }
+  const cityList = all.map((d) => d.cityName).join("、");
 
   return (
-    <Collapsible title="各縣市處理方式不同" tone="warn">
+    <Collapsible
+      title={differ ? "各縣市處理方式不同" : `各縣市處理方式（皆相同）`}
+      tone={differ ? "warn" : "neutral"}
+    >
+      {!differ && (
+        <p className="text-xs text-neutral-500 mb-2 leading-relaxed">
+          此物品在 {cityList} 的處理方式相同。
+        </p>
+      )}
       <ul className="space-y-2 mt-1">
         {all.map((d) => {
           const current = d.cityId === cityId;
+          // 「不同」時凸顯目前縣市；「相同」時全部用中性色，避免假裝有差別
+          const highlight = differ && current;
           return (
             <li
               key={d.cityId}
               className={`rounded-lg px-3 py-2 border ${
-                current
+                highlight
                   ? "bg-amber-950/30 border-amber-900/50"
                   : "bg-neutral-950/60 border-neutral-800"
               }`}
@@ -347,13 +352,19 @@ function CityDifference({ item, cityId }: { item: Item; cityId: CityId }) {
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span
                   className={`text-sm font-semibold ${
-                    current ? "text-amber-200" : "text-neutral-200"
+                    highlight ? "text-amber-200" : "text-neutral-200"
                   }`}
                 >
                   {d.cityName}
                 </span>
                 {current && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-900/60 text-amber-200">
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      differ
+                        ? "bg-amber-900/60 text-amber-200"
+                        : "bg-neutral-800 text-neutral-300"
+                    }`}
+                  >
                     目前縣市
                   </span>
                 )}
