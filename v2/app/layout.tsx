@@ -1,11 +1,62 @@
 import type { Metadata, Viewport } from "next";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import { SITE, absoluteUrl } from "@/lib/seo";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Trashform v2 — 台灣資源回收 AI 小幫手",
-  description:
-    "拍下身邊的廢棄物，AI 立即告訴你在臺北市或高雄市該怎麼處理。",
+  metadataBase: new URL(SITE.url),
+  title: {
+    default: SITE.fullTitle,
+    template: SITE.titleTemplate,
+  },
+  description: SITE.description,
+  keywords: [...SITE.keywords],
+  applicationName: SITE.name,
+  authors: [{ name: "Trashform Team", url: SITE.url }],
+  creator: "Trashform Team",
+  publisher: "Trashform Team",
+  category: "education",
+  alternates: {
+    canonical: "/",
+  },
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: SITE.locale,
+    url: SITE.url,
+    siteName: SITE.name,
+    title: SITE.fullTitle,
+    description: SITE.description,
+    images: [
+      {
+        url: absoluteUrl("/opengraph-image"),
+        width: 1200,
+        height: 630,
+        alt: "Trashform — 拍照辨識廢棄物",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE.fullTitle,
+    description: SITE.shortDescription,
+    images: [absoluteUrl("/opengraph-image")],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   // app/manifest.ts 會自動產生 link rel="manifest"，這裡只補圖示
   icons: {
     icon: [
@@ -56,6 +107,33 @@ export const viewport: Viewport = {
 //   - 1400ms 後拿掉兩個 class，splash 回到 display:none
 const SPLASH_BOOT = `(function(){try{var s=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;if(s&&!sessionStorage.getItem('tf:pwaSplashShown')){sessionStorage.setItem('tf:pwaSplashShown','1');var d=document.documentElement;d.classList.add('pwa-splash-active');setTimeout(function(){d.classList.add('pwa-splash-fading');},1000);setTimeout(function(){d.classList.remove('pwa-splash-active','pwa-splash-fading');},1400);}}catch(e){}})();`;
 
+// JSON-LD 結構化資料：Google 在搜尋結果可顯示 rich snippet（評分 / app 類別等）
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: SITE.name,
+  alternateName: "Trashform 廢棄物 AI 辨識",
+  url: SITE.url,
+  description: SITE.description,
+  applicationCategory: "EducationalApplication",
+  operatingSystem: "Any",
+  inLanguage: "zh-TW",
+  isAccessibleForFree: true,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "TWD",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "臺北市數位實驗高中",
+  },
+  potentialAction: {
+    "@type": "ViewAction",
+    target: SITE.url,
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -91,6 +169,11 @@ export default function RootLayout({
 
         {children}
         <ServiceWorkerRegister />
+        {/* JSON-LD：放最後不擋渲染；Google / Facebook 等爬蟲會抓 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
       </body>
     </html>
   );

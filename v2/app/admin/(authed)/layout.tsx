@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import AdminNav from "@/components/admin/AdminNav";
+
+// 後台一律 noindex（同時 robots.txt 也擋了 /admin/，這是雙保險）
+export const metadata: Metadata = {
+  title: { default: "後台", template: "%s｜Trashform Admin" },
+  robots: { index: false, follow: false },
+};
 
 export default function AuthedAdminLayout({
   children,
