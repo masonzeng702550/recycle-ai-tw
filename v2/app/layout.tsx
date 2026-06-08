@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     description: SITE.description,
     images: [
       {
-        url: absoluteUrl("/opengraph-image"),
+        url: absoluteUrl("/og-image.png"),
         width: 1200,
         height: 630,
         alt: "Trashform — 拍照辨識廢棄物",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE.fullTitle,
     description: SITE.shortDescription,
-    images: [absoluteUrl("/opengraph-image")],
+    images: [absoluteUrl("/og-image.png")],
   },
   robots: {
     index: true,
