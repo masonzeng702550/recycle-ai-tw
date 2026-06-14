@@ -99,6 +99,10 @@ export default function TutorialPage() {
 
   const videoSrc =
     device === "mobile" ? "/tutorial/video-mobile.mp4" : "/tutorial/video-desktop.mp4";
+  const posterSrc =
+    device === "mobile"
+      ? "/tutorial/video-mobile-poster.jpg"
+      : "/tutorial/video-desktop-poster.jpg";
 
   return (
     <>
@@ -158,12 +162,25 @@ export default function TutorialPage() {
                 : "從電腦操作的完整流程錄影。"}
             </p>
             <div className="rounded-3xl overflow-hidden bg-black border border-neutral-800">
+              {/*
+                自動播放策略：
+                  - autoPlay + muted + playsInline 是 iOS / Android Chrome 都需要的組合
+                  - loop 讓教學影片循環，使用者錯過細節不用倒帶
+                  - poster 顯示首幀，避免「黑底等待」的觀感
+                  - preload="auto" 配合 -movflags +faststart 的影片，瀏覽器拿到
+                    moov atom 後立刻開始解碼播放
+                  - key={videoSrc} 在切換手機 / 桌機版時強制 reload
+              */}
               <video
                 key={videoSrc}
                 src={videoSrc}
-                controls
+                poster={posterSrc}
+                autoPlay
+                muted
+                loop
                 playsInline
-                preload="metadata"
+                controls
+                preload="auto"
                 className={`w-full ${
                   device === "mobile" ? "max-h-[80vh]" : ""
                 } object-contain`}
